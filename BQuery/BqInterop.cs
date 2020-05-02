@@ -13,7 +13,7 @@ namespace BQuery
         /// <param name="width"></param>
         /// <param name="height"></param>
         [JSInvokable]
-        public static void WindowResize(int width, int height)
+        public static void WindowResize(double width, double height)
         {
             try
             {

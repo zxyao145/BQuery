@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 namespace BQuery
@@ -37,13 +38,17 @@ namespace BQuery
 
         /// <summary>
         /// window.onresize event
+        /// first parameter is width,
+        /// second first parameter is height
         /// </summary>
-        public event Action<int, int> OnResize;
+        public event Action<double, double> OnResize;
 
         /// <summary>
-        /// async window.onresize event 
+        /// async window.onresize event
+        /// first parameter is width,
+        /// second first parameter is height, 
         /// </summary>
-        public event Func<int, int, Task> OnResizeAsync;
+        public event Func<double, double, Task> OnResizeAsync;
 
         /// <summary>
         /// window.onscroll event
@@ -56,7 +61,7 @@ namespace BQuery
         public event Func<EventArgs, Task> OnScrollAsync;
 
 
-        internal void InvokeOnResize(int width, int height)
+        internal void InvokeOnResize(double width, double height)
         {
             OnResize?.Invoke(width, height);
             OnResizeAsync?.Invoke(width, height);

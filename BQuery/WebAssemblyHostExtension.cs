@@ -11,7 +11,7 @@ namespace BQuery
     public static class WebAssemblyHostExtension
     {
         public static WebAssemblyHost
-            UserBQuery(this WebAssemblyHost webAssemblyHost)
+            UseBQuery(this WebAssemblyHost webAssemblyHost)
         {
             var jsRuntime =webAssemblyHost.Services.GetService<IJSRuntime>();
             Bq.Init(jsRuntime);

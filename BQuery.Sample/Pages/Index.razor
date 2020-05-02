@@ -35,12 +35,12 @@ padding: 10px; overflow: scroll;">
 
     @if (docPos != null)
     {
-        <p>Position in document: X-@docPos.X, Y-@docPos.Y</p>
+        <p>Position in document, X: @docPos.X, Y: @docPos.Y</p>
     }
     @if (vpPos != null)
     {
         <div class="bg-warning p-3" style="color: #000;" >
-            <p>Position in viewport: X-@vpPos.X, Y-@vpPos.Y</p>
+            <p>Position in viewport, X: @vpPos.X, Y: @vpPos.Y</p>
         </div>
     }
 
@@ -111,7 +111,7 @@ padding: 10px; overflow: scroll;">
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private void OnWindowResize(int width, int height)
+    private void OnWindowResize(double width, double height)
     {
         vw = width;
         vh = height;

@@ -112,11 +112,11 @@ namespace BQuery
         }
 
         #endregion
-        
+
         #region scroll top left
 
         /// <summary>
-        /// get viewport scroll left
+        /// get element scroll left
         /// </summary>
         /// <returns></returns>
         public static async Task<double> GetScrollLeftAsync(this ElementReference element)
@@ -125,7 +125,7 @@ namespace BQuery
         }
 
         /// <summary>
-        /// get viewport scroll top
+        /// get element scroll top
         /// </summary>
         /// <returns></returns>
         public static async Task<double> GetScrollTopAsync(this ElementReference element)
@@ -134,7 +134,7 @@ namespace BQuery
         }
 
         /// <summary>
-        /// get viewport scroll left and top
+        /// get element scroll left and top
         /// </summary>
         /// <returns>double array: [left, top]</returns>
         public static async Task<double[]> GetScrollLeftAndTopAsync(this ElementReference element)
@@ -143,8 +143,6 @@ namespace BQuery
         }
 
         #endregion
-
-
 
         #region position
 
@@ -169,7 +167,6 @@ namespace BQuery
         }
 
         #endregion
-
 
     }
 }
