@@ -1,5 +1,7 @@
 #  BQuery
 
+[![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BQuery)](https://www.nuget.org/packages/BQuery/)
+
 An extended library of interaction between blazor and js. And The name mimics jQuery.
 
 # Usage
