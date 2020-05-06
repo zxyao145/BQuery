@@ -129,9 +129,6 @@
 
     }
     
-
-
-
     function getBq() {
         return window.bQuery;
     }
@@ -225,6 +222,10 @@
             getBq().getScrollWidth(element),
             getBq().getScrollHeight(element)
         ];
+    }
+
+    BQuery.prototype.getUserAgent = function() {
+        return navigator.userAgent;
     }
 
     //#region position

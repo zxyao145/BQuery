@@ -41,6 +41,14 @@ namespace BQuery
         /// </summary>
         public static BqEvents Events { get; private set; }
 
+        /// <summary>
+        /// get browser useragent
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<string> GetUserAgentAsync()
+        {
+            return await JsRuntime.InvokeAsync<string>("bQuery.getUserAgent");
+        }
 
         #region WidthAndHeight
 

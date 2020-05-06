@@ -1,6 +1,9 @@
 ﻿@page "/"
 
 @inject IJSRuntime JsRuntime
+    <div class="m-3 ">
+        UserAgent: @userAgent;
+    </div>
 
 <div class="m-3">
     Bq.Events.OnResize(vw & vh Will probably change):<br />vw
@@ -59,6 +62,7 @@ padding: 10px; overflow: scroll;">
 </div>
 
 @code{
+    private string userAgent;
     private double width;
     private double height;
     private double vw;
@@ -85,6 +89,8 @@ padding: 10px; overflow: scroll;">
     {
         if (firstRender)
         {
+            userAgent = await Bq.GetUserAgentAsync();
+
             //width = await elm.GetWidthAsync();
             //height = await elm.GetHeightAsync();
             var whArr = await elm.GetWidthAndHeightAsync();
