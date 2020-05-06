@@ -216,7 +216,7 @@ namespace BQuery
         /// </summary>
         public event Func<MouseEventArgs, Task> OnDbClickAsync;
 
-        public void InvokeOnDbClick(MouseEventArgs mouseEventArgs)
+        internal void InvokeOnDbClick(MouseEventArgs mouseEventArgs)
         {
             OnDbClick?.Invoke(mouseEventArgs);
             OnDbClickAsync?.Invoke(mouseEventArgs);
