@@ -48,6 +48,90 @@
         };
     }
 
+    var eventConvertor = {
+        toMouseEvent: function (e) {
+            return {
+                detail: e.detail,
+                screenX: e.screenX,
+                screenY: e.screenY,
+                clientX: e.clientX,
+                clientY: e.clientY,
+                button: e.button,
+                buttons: e.buttons,
+                ctrlKey: e.ctrlKey,
+                shiftKey: e.shiftKey,
+                altKey: e.altKey,
+                metaKey: e.metaKey,
+                type: e.type
+            };
+        },
+        toDragEventArgs: function (e) {
+            var obj = eventConvertor.toMouseEvent(e);
+            obj.dataTransfer = {
+                dropEffect: e.dropEffect,
+                effectAllowed: e.effectAllowed,
+                files: e.files,
+                items: e.items,
+                types: e.types
+            };
+
+            return obj;
+        },
+        toFocusEventArgs: function(e) {
+            return {
+               type:e.type
+            }
+        },
+        toTouchEventArgs: function (e) {
+            return {
+                detail: e.detail,
+                touches: eventConvertor.toTouchPoints(e.touches),
+                targetTouches: eventConvertor.toTouchPoints(e.targetTouches),
+                changedTouches: eventConvertor.toTouchPoints(e.changedTouches),
+                ctrlKey: e.ctrlKey,
+                shiftKey: e.shiftKey,
+                altKey: e.altKey,
+                metaKey: e.metaKey ,
+                type: e.type
+            }
+        },
+        toKeyboardEventArgs: function(e) {
+            return {
+                key: e.key,
+                code: e.code,
+                location: e.location,
+                repeat: e.repeat,
+                ctrlKey: e.ctrlKey,
+                shiftKey: e.shiftKey,
+                altKey: e.altKey,
+                metaKey: e.metaKey,
+                type: e.type
+            }
+        },
+        toTouchPoints: function (pts) {
+            var touches = [];
+            for (var i = 0; i < pts.length; i++) {
+                touches.push(eventConvertor.toTouchPoint(pts[i]));
+            }
+            return touches;
+        },
+        toTouchPoint: function(pt) {
+            return {
+                identifier: pt.identifier,
+                screenX: pt.screenX,
+                screenY: pt.screenY,
+                clientX: pt.clientX,
+                clientY: pt.clientY,
+                pageX: pt.pageX,
+                pageY: pt.pageY
+            }
+        }
+
+    }
+    
+
+
+
     function getBq() {
         return window.bQuery;
     }
@@ -208,15 +292,112 @@
 
     //#endregion
 
+    //#region window events
+    var defaultThrottleTicks = 160;
 
-    window.onresize = throttle(function(e) {
+    var lastClick;
+    var clickTimeOut;
+    window.onclick = function(e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        var now = (new Date()).getTime();
+        if (lastClick && ((now - lastClick) < 230)) {
+            window.clearTimeout(clickTimeOut);
+            DotNet.invokeMethod("BQuery", "WindowDbClick", obj);
+            lastClick = null;
+        } else {
+            clickTimeOut = window.setTimeout(function() {
+                    DotNet.invokeMethod("BQuery", "WindowClick", obj);
+                },
+                230);
+            lastClick = now;
+        }
+    };
+
+    window.oncontextmenu = function(e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        DotNet.invokeMethod("BQuery", "WindowContextMenu", obj);
+    };
+
+    window.onmousedown = function(e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        DotNet.invokeMethod("BQuery", "WindowMouseDown", obj);
+    };
+
+    window.onmouseup = function(e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        DotNet.invokeMethod("BQuery", "WindowMouseUp", obj);
+    };
+
+    window.onmouseover = throttle(function (e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        DotNet.invokeMethod("BQuery", "WindowMouseOver", obj);
+    }, defaultThrottleTicks);
+    window.onmouseout = throttle(function (e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        DotNet.invokeMethod("BQuery", "WindowMouseOut", obj);
+    }, defaultThrottleTicks);
+    window.onmousemove = throttle(function (e) {
+        var obj = eventConvertor.toMouseEvent(e);
+        DotNet.invokeMethod("BQuery", "WindowMouseMove", obj);
+    }, defaultThrottleTicks);
+
+
+    window.onresize = throttle(function (e) {
         var vwhArr = getBq().viewport.getWidthAndHeight();
         DotNet.invokeMethod("BQuery", "WindowResize", vwhArr[0], vwhArr[1]);
-    },160);
-
+    }, defaultThrottleTicks);
+   
     window.onscroll = throttle(function (e) {
         DotNet.invokeMethod("BQuery", "WindowScroll", e);
-    }, 160);
+    }, defaultThrottleTicks);
+
+    window.onclose = function(e) {
+        DotNet.invokeMethod("BQuery", "WindowClose", e);
+    };
+
+    window.onfocus = function(e) {
+        var evt = eventConvertor.toFocusEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowFocus", evt);
+    };
+    window.onblur = function(e) {
+        var evt = eventConvertor.toFocusEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowBlur", evt);
+    };
+
+
+    window.ontouchstart = throttle(function (e) {
+        var evt = eventConvertor.toTouchEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowTouchStart", evt);
+    }, defaultThrottleTicks); 
+    window.ontouchmove = throttle(function (e) {
+        var evt = eventConvertor.toTouchEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowTouchMove", evt);
+    }, defaultThrottleTicks); 
+    window.ontouchend = throttle(function (e) {
+        var evt = eventConvertor.toTouchEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowTouchEnd", evt);
+    }, defaultThrottleTicks); 
+    window.ontouchcancel = throttle(function (e) {
+        var evt = eventConvertor.toTouchEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowTouchCancel", evt);
+    }, defaultThrottleTicks);
+
+
+    window.onkeydown = function(e) {
+        var evt = eventConvertor.toKeyboardEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowKeyDown", evt);
+    };
+    window.onkeypress = function(e) {
+        var evt = eventConvertor.toKeyboardEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowKeyPress", evt);
+    };
+    window.onkeyup = function(e) {
+        var evt = eventConvertor.toKeyboardEventArgs(e);
+        DotNet.invokeMethod("BQuery", "WindowKeyUp", evt);
+    };
+
+    //#endregion
+
 
 
     window.bQuery = new BQuery();

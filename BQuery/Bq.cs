@@ -37,7 +37,7 @@ namespace BQuery
         public static BqViewport Viewport { get; private set; }
 
         /// <summary>
-        /// window events
+        /// window events(specifically) 
         /// </summary>
         public static BqEvents Events { get; private set; }
 

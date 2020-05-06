@@ -1,0 +1,53 @@
+﻿@page "/events"
+<div class="m-3">
+    <h3>Bq.Events.OnMouseMove</h3>
+    _clientX: @_clientX, _clientY: @_clientX
+    <br />
+    _screenX: @_screenX, _screenY: @_screenY
+</div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnClick</h3>
+    _clickX: @_clickX, _clickY: @_clickY, _ctrlKey:@_ctrlKey
+</div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnDbClick</h3>
+    _dbClickX: @_dbClickX, _dbClickY: @_dbClickY, _shiftKey:@_shiftKey
+</div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnMouseDown & OnMouseUp</h3>
+    _mouseDownX: @_mouseDownX, _mouseDownY: @_mouseDownY<br />
+    _mouseUpX: @_mouseUpX, _mouseUpY: @_mouseUpY
+</div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnKeyDown</h3>
+    _curKey: @_curKey<br />
+    @(_sb.ToString())
+</div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnFocus & OnBlur</h3>
+    @foreach (var log in _focusLogs)
+    {
+        @log <br />
+    }
+</div>
+
+
+
+<div class="m-3">
+    <h3>Bq.Events.OnTouchStart</h3>
+    @if (_touchPoints != null)
+    {
+        foreach (var touchPoint in _touchPoints)
+        {
+            @("touchPoint.ClientX:" + @touchPoint.ClientX + "touchPoint.ClientY:" + @touchPoint.ClientY) 
+            <br />
+        }
+    }
+</div>
+
+

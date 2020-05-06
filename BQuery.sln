@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BQuery", "BQuery\BQuery.csproj", "{B1712A1D-8D69-4612-B129-1CC5E9E49D75}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BQuery", "BQuery\BQuery.csproj", "{B1712A1D-8D69-4612-B129-1CC5E9E49D75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BQuery.Sample", "BQuery.Sample\BQuery.Sample.csproj", "{B644B01F-5763-4708-921D-0438D87FC82D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BQuery.Sample", "BQuery.Sample\BQuery.Sample.csproj", "{B644B01F-5763-4708-921D-0438D87FC82D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

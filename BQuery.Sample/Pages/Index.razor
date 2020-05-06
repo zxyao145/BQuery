@@ -2,13 +2,13 @@
 
 @inject IJSRuntime JsRuntime
 
-    <div class="m-3">
-        Bq.Events.OnResize(vw & vh Will probably change):<br />vw
-        vw:@vw<br />
-        vh:@vh<br />
-        scrollW:@scrollW<br />
-        scrollH:@scrollH
-    </div>
+<div class="m-3">
+    Bq.Events.OnResize(vw & vh Will probably change):<br />vw
+    vw:@vw<br />
+    vh:@vh<br />
+    scrollW:@scrollW<br />
+    scrollH:@scrollH
+</div>
 
 <div @ref="elm" class="m-3 badge-primary text-white"
      style="height: 200px; width: 500px; padding: 10px 8px 5px 2px;">
@@ -39,7 +39,7 @@ padding: 10px; overflow: scroll;">
     }
     @if (vpPos != null)
     {
-        <div class="bg-warning p-3" style="color: #000;" >
+        <div class="bg-warning p-3" style="color: #000;">
             <p>Position in viewport, X: @vpPos.X, Y: @vpPos.Y</p>
         </div>
     }
@@ -50,6 +50,13 @@ padding: 10px; overflow: scroll;">
     </div>
 </div>
 
+
+<div>
+    mouseClientX: @mouseClientX <br />
+    mouseClientY: @mouseClientY <br />
+    mouseScreenX: @mouseScreenX <br />
+    mouseScreenY: @mouseScreenY
+</div>
 
 @code{
     private double width;
@@ -66,6 +73,10 @@ padding: 10px; overflow: scroll;">
     private double eleScrollH;
     private ElePosition docPos;
     private ElePosition vpPos;
+    private double mouseClientX;
+    private double mouseClientY;
+    private double mouseScreenX;
+    private double mouseScreenY;
 
 
     ElementReference elm;
@@ -104,6 +115,7 @@ padding: 10px; overflow: scroll;">
             Bq.Events.OnResize += OnWindowResize;
             Bq.Events.OnScrollAsync += OnWindowScrollAsync;
 
+            Bq.Events.OnMouseMove += OnWindowMouseMove;
 
             StateHasChanged();
         }
@@ -115,8 +127,6 @@ padding: 10px; overflow: scroll;">
     {
         vw = width;
         vh = height;
-
-
         StateHasChanged();
     }
 
@@ -130,4 +140,14 @@ padding: 10px; overflow: scroll;">
         vpPos = await elm2.GetPositionInViewport();
         StateHasChanged();
     }
+
+    private void OnWindowMouseMove(MouseEventArgs e)
+    {
+        mouseClientX = e.ClientX;
+        mouseClientY = e.ClientY;
+        mouseScreenX = e.ScreenX;
+        mouseScreenY = e.ScreenY;
+        StateHasChanged();
+    }
+
 }
