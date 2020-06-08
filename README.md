@@ -81,8 +81,10 @@ note: all the method not show the first patameter:  *this ElementReference eleme
 | `Task<double> GetScrollLeftAsync()`                          | get element scroll left             | --                                               | left               |
 | `Task<double> GetScrollTopAsync()`                           | get element scroll top              | --                                               | top                |
 | `Task<double[]> GetScrollLeftAndTopAsync()`                  | get element scroll left and top     | --                                               | [left, top]        |
-| `Task<ElePosition> GetPositionInViewport()`                  | get element position in Viewport    | --                                               | ElePosition object |
-| `Task<ElePosition> GetPositionInDoc()`                       | get element position in document    | --                                               | ElePosition object |
+| `Task<ElePosition> GetPositionInViewportAsync()`             | get element position in Viewport    | --                                               | ElePosition object |
+| `Task<ElePosition> GetPositionInDocAsync()`                  | get element position in document    | --                                               | ElePosition object |
+| `Task FocusAsync()`                                          | focus element                       | --                                               | --                 |
+| `Task BindDragAsync(DragOptions options = null)`             | Allow element drag                  | DragOptions                                      | --                 |
 
 ## `Bq.Events`.*
 

@@ -4,23 +4,46 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
 namespace BQuery
 {
     public static class Bq
     {
-        internal static void Init(IJSRuntime jsRuntime)
+        internal static IServiceProvider Services { get; set; }
+
+        internal static T GetScopeService<T>(out IServiceScope scope)
         {
-            JsRuntime = jsRuntime;
+            scope = Services.CreateScope();
+            try
+            {
+                return scope.ServiceProvider.GetService<T>();
+            }
+            catch (Exception)
+            {
+                scope.Dispose();
+                throw;
+            }
+        }
+
+        internal static T GetScopeService<T>(IServiceScope scope)
+        {
+            return scope.ServiceProvider.GetService<T>();
+        }
+
+        internal static IJSRuntime GetJsRuntime(out IServiceScope scope)
+        {
+            var jsRuntime = GetScopeService<IJSRuntime>(out scope);
+            return jsRuntime;
+        }
+
+        internal static void Init(IServiceProvider services)
+        {
+            Services = services;
             if (Viewport == null)
             {
-                Viewport = BqViewport.CreateInstance(jsRuntime);
-            }
-            else
-            {
-                //Although it's not necessary
-                Viewport.JsRuntime = jsRuntime;
+                Viewport = BqViewport.CreateInstance();
             }
 
             if (Events == null)
@@ -28,9 +51,7 @@ namespace BQuery
                 Events = BqEvents.CreateInstance();
             }
         }
-
-        internal static IJSRuntime JsRuntime { get; set; }
-
+        
         /// <summary>
         /// Viewport operation
         /// </summary>
@@ -47,7 +68,16 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<string> GetUserAgentAsync()
         {
-            return await JsRuntime.InvokeAsync<string>("bQuery.getUserAgent");
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<string>(JsInteropConstants.GetUserAgent);
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #region WidthAndHeight
@@ -60,7 +90,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double> GetWidthAsync(this ElementReference element, bool isOuter = true)
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.getWidth", element, isOuter);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetWidth, element, isOuter);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -71,7 +111,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double> GetHeightAsync(this ElementReference element, bool isOuter = true)
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.getHeight", element, isOuter);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetHeight, element, isOuter);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -82,7 +132,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double[]> GetWidthAndHeightAsync(this ElementReference element, bool isOuter = true)
         {
-            return await JsRuntime.InvokeAsync<double[]>("bQuery.getWidthAndHeight", element, isOuter);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.GetWidthAndHeight, element, isOuter);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #endregion
@@ -96,7 +156,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double> GetScrollWidthAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.getScrollWidth", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollWidth, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -106,7 +176,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double> GetScrollHeightAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.getScrollHeight", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollHeight, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -116,7 +196,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double[]> GetScrollWidthAndHeightAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<double[]>("bQuery.getScrollWidthAndHeight", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.GetScrollWidthAndHeight, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #endregion
@@ -129,7 +219,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double> GetScrollLeftAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.getScrollLeft", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollLeft, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -138,7 +238,17 @@ namespace BQuery
         /// <returns></returns>
         public static async Task<double> GetScrollTopAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.getScrollTop", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollTop, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -147,7 +257,17 @@ namespace BQuery
         /// <returns>double array: [left, top]</returns>
         public static async Task<double[]> GetScrollLeftAndTopAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<double[]>("bQuery.getScrollLeftAndTop", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.GetScrollLeftAndTop, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #endregion
@@ -159,9 +279,19 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<ElePosition> GetPositionInViewport(this ElementReference element)
+        public static async Task<ElePosition> GetPositionInViewportAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<ElePosition>("bQuery.getPositionInViewport", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<ElePosition>(JsInteropConstants.GetPositionInViewport, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -169,12 +299,59 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<ElePosition> GetPositionInDoc(this ElementReference element)
+        public static async Task<ElePosition> GetPositionInDocAsync(this ElementReference element)
         {
-            return await JsRuntime.InvokeAsync<ElePosition>("bQuery.getPositionInDoc", element);
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<ElePosition>(JsInteropConstants.GetPositionInDoc, element);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #endregion
 
+        /// <summary>
+        ///  focus <param name="element">element</param> 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static async Task FocusAsync(this ElementReference element)
+        {
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                await jsRuntime.InvokeVoidAsync(JsInteropConstants.Focus, element);
+            }
+            finally
+            {
+                scope.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// bind drag for <param name="element">element</param> 
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static async Task BindDragAsync(this ElementReference element, DragOptions options = null)
+        {
+            var jsRuntime = GetJsRuntime(out var scope);
+            try
+            {
+                options ??= new DragOptions();
+                await jsRuntime.InvokeVoidAsync(JsInteropConstants.BindDrag, element, options);
+            }
+            finally
+            {
+                scope.Dispose();
+            }
+        }
     }
 }

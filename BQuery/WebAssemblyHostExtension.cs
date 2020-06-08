@@ -13,8 +13,7 @@ namespace BQuery
         public static WebAssemblyHost
             UseBQuery(this WebAssemblyHost webAssemblyHost)
         {
-            var jsRuntime =webAssemblyHost.Services.GetService<IJSRuntime>();
-            Bq.Init(jsRuntime);
+            Bq.Init(webAssemblyHost.Services);
             return webAssemblyHost;
         }
     }

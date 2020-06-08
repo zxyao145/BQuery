@@ -137,6 +137,15 @@
 
     }
 
+    function getDom(element) {
+        if (!element) {
+            element = document.body;
+        } else if (typeof element === 'string') {
+            element = document.querySelector(element);
+        }
+        return element;
+    }
+
     //#region viewport
     const viewport = {
         getWidth: () => {
@@ -228,6 +237,7 @@
         return navigator.userAgent;
     }
 
+    
     //#region position
 
     BQuery.prototype.getPositionInViewport = (element) => {
@@ -399,10 +409,93 @@
 
     //#endregion
 
+    BQuery.prototype.focus = (element) => {
+        element.focus();
+    }
+
+    BQuery.prototype.bindDrag = function (dom, options) {
+        function getCss(ele, prop) {
+            return parseInt(window.getComputedStyle(ele)[prop]);
+        }
+        var isInDrag = false;
+        var mX = 0;
+        var mY = 0;
+        var domStartX = 0, domStartY = 0;
+        var domMaxY = document.documentElement.clientHeight
+            - dom.offsetHeight;
+        var domMaxX = document.documentElement.clientWidth
+            - dom.offsetWidth;
+        var panelHeader;
+        if (options.dragElement) {
+            if (typeof options.dragElement === 'string') {
+                panelHeader = dom.querySelector(options.dragElement);
+            } else {
+                panelHeader = options.dragElement;
+            }
+        } else {
+            panelHeader = dom;
+        }
+
+        panelHeader.addEventListener("mousedown", function (e) {
+            isInDrag = true;
+            mX = e.clientX;
+            mY = e.clientY;
+            dom.style.position = "absolute";
+            domStartX = getCss(dom, "left");
+            domStartY = getCss(dom, "top");
+        }, false);
+        window.addEventListener("mouseup", function (e) {
+            isInDrag = false;
+            domStartX = getCss(dom, "left");
+            domStartY = getCss(dom, "top");
+        }, false);
+        document.addEventListener("mousemove", throttle(function (e) {
+            if (isInDrag) {
+                var nowX = e.clientX, nowY = e.clientY, disX = nowX - mX, disY = nowY - mY;
+                var newDomX = domStartX + disX;
+                var newDomY = domStartY + disY;
+                if (options.inViewport) {
+                    if (newDomX < 0) {
+                        newDomX = 0;
+                    }
+                    else if (newDomX > domMaxX) {
+                        newDomX = domMaxX;
+                    }
+                    if (newDomY < 0) {
+                        newDomY = 0;
+                    }
+                    else if (newDomY > domMaxY) {
+                        newDomY = domMaxY;
+                    }
+                }
+                dom.style.left = newDomX + "px";
+                dom.style.top = newDomY + "px";
+            }
+        }, 60));
+        if (options.inViewport) {
+            window.addEventListener("resize", throttle(function (e) {
+                domMaxY = document.documentElement.clientHeight
+                    - dom.offsetHeight;
+                domMaxX = document.documentElement.clientWidth
+                    - dom.offsetWidth;
+                domStartY = parseInt(dom.style.top);
+                domStartX = parseInt(dom.style.left);
+                if (domStartY > domMaxY) {
+                    if (domMaxY > 0) {
+                        dom.style.top = domMaxY + "px";
+                    }
+                }
+                if (domStartX > domMaxX) {
+                    dom.style.left = domMaxX + "px";
+                }
+            }, 60), false);
+        }
+    };
 
 
     window.bQuery = new BQuery();
     window.bQuery.throttle = throttle;
     window.bQuery.debounce = debounce;
+
 })();
 

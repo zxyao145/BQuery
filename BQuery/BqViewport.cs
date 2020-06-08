@@ -9,20 +9,20 @@ namespace BQuery
 {
     public class BqViewport
     {
-        private BqViewport(IJSRuntime jsRuntime)
+        private BqViewport()
         {
-            JsRuntime = jsRuntime;
         }
 
         private static BqViewport _instance;
         private static int _lock = 0;
-        internal static BqViewport CreateInstance(IJSRuntime jsRuntime)
+
+        internal static BqViewport CreateInstance()
         {
             if (_instance == null)
             {
                 if (Interlocked.CompareExchange(ref _lock, 1, 0) == 0)
                 {
-                    _instance = new BqViewport(jsRuntime);
+                    _instance = new BqViewport();
                     Interlocked.Increment(ref _lock);
                 }
 
@@ -35,8 +35,6 @@ namespace BQuery
             return _instance;
         }
 
-        internal IJSRuntime JsRuntime { get; set; }
-
         #region width height
 
         /// <summary>
@@ -45,7 +43,17 @@ namespace BQuery
         /// <returns></returns>
         public async Task<double> GetWidthAsync()
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.viewport.getWidth");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.VpGetWidth);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -54,7 +62,17 @@ namespace BQuery
         /// <returns></returns>
         public async Task<double> GetHeightAsync()
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.viewport.getHeight");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.VpGetHeight);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -63,7 +81,17 @@ namespace BQuery
         /// <returns>double array: [width,height]</returns>
         public async Task<double[]> GetWidthAndHeightAsync()
         {
-            return await JsRuntime.InvokeAsync<double[]>("bQuery.viewport.getWidthAndHeight");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.VpGetWidthAndHeight);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #endregion
@@ -76,7 +104,17 @@ namespace BQuery
         /// <returns></returns>
         public async Task<double> GetScrollWidthAsync()
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.viewport.getScrollWidth");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.VpGetScrollWidth);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -85,7 +123,17 @@ namespace BQuery
         /// <returns></returns>
         public async Task<double> GetScrollHeightAsync()
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.viewport.getScrollHeight");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.VpGetScrollHeight);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -94,7 +142,17 @@ namespace BQuery
         /// <returns>double array: [width,height]</returns>
         public async Task<double[]> GetScrollWidthAndHeightAsync()
         {
-            return await JsRuntime.InvokeAsync<double[]>("bQuery.viewport.getScrollWidthAndHeight");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.VpGetScrollWidthAndHeight);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         #endregion
@@ -105,7 +163,17 @@ namespace BQuery
         /// <returns></returns>
         public async Task<double> GetScrollLeftAsync()
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.viewport.getScrollLeft");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.VpGetScrollLeft);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -114,7 +182,17 @@ namespace BQuery
         /// <returns></returns>
         public async Task<double> GetScrollTopAsync()
         {
-            return await JsRuntime.InvokeAsync<double>("bQuery.viewport.getScrollTop");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.VpGetScrollTop);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
 
         /// <summary>
@@ -123,7 +201,17 @@ namespace BQuery
         /// <returns>double array: [left, top]</returns>
         public async Task<double[]> GetScrollLeftAndTopAsync()
         {
-            return await JsRuntime.InvokeAsync<double[]>("bQuery.viewport.getScrollLeftAndTop");
+            var jsRuntime = Bq.GetJsRuntime(out var scope);
+            try
+            {
+                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.VpGetScrollLeftAndTop);
+
+                return result;
+            }
+            finally
+            {
+                scope.Dispose();
+            }
         }
     }
 }

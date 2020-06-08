@@ -142,8 +142,8 @@ padding: 10px; overflow: scroll;">
         scrollW = scrollWH[0];
         scrollH = scrollWH[1];
         //position
-        docPos = await elm2.GetPositionInDoc();
-        vpPos = await elm2.GetPositionInViewport();
+        docPos = await elm2.GetPositionInDocAsync();
+        vpPos = await elm2.GetPositionInViewportAsync();
         StateHasChanged();
     }
 
