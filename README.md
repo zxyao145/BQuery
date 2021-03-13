@@ -1,16 +1,22 @@
-#  BQuery
+#  1.BQuery
 
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BQuery)](https://www.nuget.org/packages/BQuery/)
 
-An extended library of interaction between blazor and js. And The name mimics jQuery.
+An extended library of interaction between blazor and js. And The name mimics jQuery.  Now upgrade to .NET 5.
 
-# Usage
+[Live demo]( https://zxyao145.github.io/BQuery/)
 
-## Add js:
+# 2.Usage
 
-<script src="_content/BQuery/bQuery.js"></script>
+## 2.1.For WASM
 
-## UseBQuery
+### 2.1.1.Add js to wwwroot/index.html
+
+```js
+<script src="_content/BQuery/bQuery.min.js"></script>
+```
+
+### 2.1.2.Modify the `Main ` method in Program.cs 
 
 change 
 
@@ -21,18 +27,87 @@ await builder.Build().RunAsync();
 to
 
 ```c#
-await builder.Build().UseBQuery().RunAsync();
+await builder.Build()
++	.UseBQuery()
+	.RunAsync();
 ```
 
-in main method.
-
-## using namespace
+### 2.1.3.using namespace
 
 ```c#
 using BQuery;
 ```
 
-# Gif
+
+
+See "**Sample\BQuery.Sample.Wasm**" and "**Sample\BQuery.Sample.Common**" for details.
+
+
+
+## 2.2.For server side
+
+### 2.2.1Add js to Pages/_host.html
+
+In server side, you must manually initialize bquery as follows:
+
+```js
+<script src="_framework/blazor.server.js" autostart="false"></script>
+<script src="_content/BQuery/bQuery.min.js"></script>
+<script>
+    function start() {
+        Blazor.start({})
+            .then(() => {
+                window.bqInit();
+            });
+    }
+    start();
+</script>
+```
+
+**Please note** that the `blazor.server.js` set the property of  **`autostart="false"`**.
+
+
+
+### 2.2.2.Modify `App.razor`
+
+To get the `IJSRuntime`  in the context of mounting DOM, you must add or modify the partial class `App` file **App.razor.cs**, and inject `IJSRuntime` as follows:
+
+```
+[Inject]
+public IJSRuntime JsRuntime
+{
+	get => Bq.JsRuntime;
+	set => Bq.JsRuntime = value;
+}
+```
+
+### 2.2.3.Modify the `Main ` method in Program.cs 
+
+change 
+
+```c#
+CreateHostBuilder(args).Build().Run();
+```
+
+to
+
+```c#
+CreateHostBuilder(args).Build()
++                .UseBQuery()
+                .Run();
+```
+
+### 2.2.4.using namespace
+
+```c#
+using BQuery;
+```
+
+See "**Sample\BQuery.Sample.Server**" and "**Sample\BQuery.Sample.Common**" for details.
+
+
+
+# 3.Gif
 
 Window on resize
 
@@ -42,9 +117,9 @@ Window on scroll
 
 ![onscroll](./files/scroll.gif)
 
-# Api
+# 4.Api
 
-## `Bq Static member (not contains extension methods)`
+## 4.1.`Bq Static member (not contains extension methods)`
 
 | **name**                           | describe                    | return    |
 | ---------------------------------- | --------------------------- | --------- |
@@ -52,7 +127,7 @@ Window on scroll
 | `Viewport`                         | See **Bq.Viewport.*** below | --        |
 | `Events`                           | See **Bq.Events.*** below   | --        |
 
-## `Bq.Viewport.*`
+## 4.2.`Bq.Viewport.*`
 
 | name                                            | describe                             | return          |
 | ----------------------------------------------- | ------------------------------------ | --------------- |
@@ -66,7 +141,7 @@ Window on scroll
 | `Task<double> GetScrollTopAsync()`              | get viewport scroll top              | top             |
 | `Task<double[]> GetScrollLeftAndTopAsync()`     | get viewport scroll left and top     | [left, top]     |
 
-## ElementReference Extension methods
+## 4.3.ElementReference Extension methods
 
 note: all the method not show the first patameter:  *this ElementReference element*
 
@@ -83,10 +158,10 @@ note: all the method not show the first patameter:  *this ElementReference eleme
 | `Task<double[]> GetScrollLeftAndTopAsync()`                  | get element scroll left and top     | --                                               | [left, top]        |
 | `Task<ElePosition> GetPositionInViewportAsync()`             | get element position in Viewport    | --                                               | ElePosition object |
 | `Task<ElePosition> GetPositionInDocAsync()`                  | get element position in document    | --                                               | ElePosition object |
-| `Task FocusAsync()`                                          | focus element                       | --                                               | --                 |
+| ~~`Task FocusAsync()`~~   | focus element                       | Blazor already has a native implementation       | --                 |
 | `Task BindDragAsync(DragOptions options = null)`             | Allow element drag                  | DragOptions                                      | --                 |
 
-## `Bq.Events`.*
+## 4.4.`Bq.Events`.*
 
 | name                         | describe                     | parameters        |
 | ---------------------------- | ---------------------------- | ----------------- |
@@ -131,10 +206,10 @@ note: all the method not show the first patameter:  *this ElementReference eleme
 | `event Action<KeyboardEventArgs> OnKeyUp` | window.onkeyup event | KeyboardEventArgs |
 | `event Func<KeyboardEventArgs Task> OnKeyUpAsync` | async window.onkeyup event | KeyboardEventArgs |
 
-# Developer
+# 5.Developer
 
 zxyao
 
-# License
+# 6.License
 
 MIT
