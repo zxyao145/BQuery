@@ -1,7 +1,7 @@
 ﻿import "./global";
 
 (() => {
-	var version = "2.0.1";
+    var version = "2.0.2";
     var DotNet = window.DotNet;
 
     //#region interfaces
@@ -460,120 +460,124 @@
     BQuery.prototype.viewport = viewport;
     //#endregion
 
+    var bindEvent = () => {
+
+        //#region window events
+
+        var lastClick;
+        var clickTimeOut;
+        window.onclick = e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            var now = (new Date()).getTime();
+            if (lastClick && ((now - lastClick) < 230)) {
+                window.clearTimeout(clickTimeOut);
+                DotNet.invokeMethodAsync("BQuery", "WindowDbClick", obj);
+                lastClick = null;
+            } else {
+                clickTimeOut = window.setTimeout(function () {
+                    DotNet.invokeMethodAsync("BQuery", "WindowClick", obj);
+                },
+                    230);
+                lastClick = now;
+            }
+        };
+
+        window.oncontextmenu = e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowContextMenu", obj);
+        };
+
+        window.onmousedown = e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowMouseDown", obj);
+        };
+
+        window.onmouseup = e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowMouseUp", obj);
+        };
+
+        window.onmouseover = throttle(e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowMouseOver", obj);
+        }, defaultThrottleTicks);
+        window.onmouseout = throttle(e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowMouseOut", obj);
+        }, defaultThrottleTicks);
+        window.onmousemove = throttle(e => {
+            var obj = eventConvertor.toMouseEvent(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowMouseMove", obj);
+        }, defaultThrottleTicks);
+
+        window.onresize = throttle(e => {
+            var vwhArr = getBq().viewport.getWidthAndHeight();
+            DotNet.invokeMethodAsync("BQuery", "WindowResize", vwhArr[0], vwhArr[1]);
+        }, defaultThrottleTicks);
+
+        window.onscroll = throttle(e => {
+            DotNet.invokeMethodAsync("BQuery", "WindowScroll", e);
+        }, defaultThrottleTicks);
+
+        window.onclose = e => {
+            DotNet.invokeMethodAsync("BQuery", "WindowClose", e);
+        };
+
+        window.onfocus = e => {
+            var evt = eventConvertor.toFocusEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowFocus", evt);
+        };
+        window.onblur = e => {
+            var evt = eventConvertor.toFocusEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowBlur", evt);
+        };
+
+        window.ontouchstart = throttle(e => {
+            var evt = eventConvertor.toTouchEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowTouchStart", evt);
+        }, defaultThrottleTicks);
+        window.ontouchmove = throttle(e => {
+            var evt = eventConvertor.toTouchEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowTouchMove", evt);
+        }, defaultThrottleTicks);
+        window.ontouchend = throttle(e => {
+            var evt = eventConvertor.toTouchEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowTouchEnd", evt);
+        }, defaultThrottleTicks);
+        window.ontouchcancel = throttle(e => {
+            var evt = eventConvertor.toTouchEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowTouchCancel", evt);
+        }, defaultThrottleTicks);
 
 
-    //#region window events
+        window.onkeydown = e => {
+            var evt = eventConvertor.toKeyboardEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowKeyDown", evt);
+        };
+        window.onkeypress = e => {
+            var evt = eventConvertor.toKeyboardEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowKeyPress", evt);
+        };
+        window.onkeyup = e => {
+            var evt = eventConvertor.toKeyboardEventArgs(e);
+            DotNet.invokeMethodAsync("BQuery", "WindowKeyUp", evt);
+        };
 
-    var lastClick;
-    var clickTimeOut;
-    window.onclick = e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        var now = (new Date()).getTime();
-        if (lastClick && ((now - lastClick) < 230)) {
-            window.clearTimeout(clickTimeOut);
-            DotNet.invokeMethodAsync("BQuery", "WindowDbClick", obj);
-            lastClick = null;
-        } else {
-            clickTimeOut = window.setTimeout(function () {
-                DotNet.invokeMethodAsync("BQuery", "WindowClick", obj);
-            },
-                230);
-            lastClick = now;
-        }
-    };
-
-    window.oncontextmenu = e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowContextMenu", obj);
-    };
-
-    window.onmousedown = e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowMouseDown", obj);
-    };
-
-    window.onmouseup = e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowMouseUp", obj);
-    };
-
-    window.onmouseover = throttle(e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowMouseOver", obj);
-    }, defaultThrottleTicks);
-    window.onmouseout = throttle(e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowMouseOut", obj);
-    }, defaultThrottleTicks);
-    window.onmousemove = throttle(e => {
-        var obj = eventConvertor.toMouseEvent(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowMouseMove", obj);
-    }, defaultThrottleTicks);
-
-    window.onresize = throttle(e => {
-        var vwhArr = getBq().viewport.getWidthAndHeight();
-        DotNet.invokeMethodAsync("BQuery", "WindowResize", vwhArr[0], vwhArr[1]);
-    }, defaultThrottleTicks);
-
-    window.onscroll = throttle(e => {
-        DotNet.invokeMethodAsync("BQuery", "WindowScroll", e);
-    }, defaultThrottleTicks);
-
-    window.onclose = e => {
-        DotNet.invokeMethodAsync("BQuery", "WindowClose", e);
-    };
-
-    window.onfocus = e => {
-        var evt = eventConvertor.toFocusEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowFocus", evt);
-    };
-    window.onblur = e => {
-        var evt = eventConvertor.toFocusEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowBlur", evt);
-    };
-
-    window.ontouchstart = throttle(e => {
-        var evt = eventConvertor.toTouchEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowTouchStart", evt);
-    }, defaultThrottleTicks);
-    window.ontouchmove = throttle(e => {
-        var evt = eventConvertor.toTouchEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowTouchMove", evt);
-    }, defaultThrottleTicks);
-    window.ontouchend = throttle(e => {
-        var evt = eventConvertor.toTouchEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowTouchEnd", evt);
-    }, defaultThrottleTicks);
-    window.ontouchcancel = throttle(e => {
-        var evt = eventConvertor.toTouchEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowTouchCancel", evt);
-    }, defaultThrottleTicks);
-
-
-    window.onkeydown = e => {
-        var evt = eventConvertor.toKeyboardEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowKeyDown", evt);
-    };
-    window.onkeypress = e => {
-        var evt = eventConvertor.toKeyboardEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowKeyPress", evt);
-    };
-    window.onkeyup = e => {
-        var evt = eventConvertor.toKeyboardEventArgs(e);
-        DotNet.invokeMethodAsync("BQuery", "WindowKeyUp", evt);
-    };
-
-    //#endregion
+        //#endregion
+    }
 
     let hasInited = false;
     var bQueryReady = () => {
         if (!hasInited) {
             hasInited = true;
-
+            window.bqInit = null;
             console.log("bQuery is Ready");
+
             window.bQuery = new BQuery();
             window.bQuery.throttle = throttle;
             window.bQuery.debounce = debounce;
+
+            bindEvent();
         }
     }
 

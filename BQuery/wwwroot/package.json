@@ -1,6 +1,6 @@
 {
   "name": "bquery",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "An extended library of interaction between blazor and js. And The name mimics jQuery.",
   "main": "bQuery.js",
   "scripts": {
