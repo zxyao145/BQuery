@@ -28,13 +28,13 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<DefaultItemExcludes>
+		<!--<DefaultItemExcludes>
 			$(DefaultItemExcludes);
 			wwwroot\src\**;
 			wwwroot\gulpfile.js;
 			wwwroot\package.json;
 			wwwroot\package-lock.json;
-		</DefaultItemExcludes>
+		</DefaultItemExcludes>-->
 	</PropertyGroup>
 
 	<Target Name="RunGulp" BeforeTargets="Build">
