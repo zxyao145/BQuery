@@ -52,7 +52,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -71,7 +71,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -90,7 +90,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -113,7 +113,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -132,7 +132,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -151,7 +151,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -172,7 +172,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -191,7 +191,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -210,7 +210,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
     }

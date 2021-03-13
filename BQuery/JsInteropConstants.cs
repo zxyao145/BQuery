@@ -9,9 +9,10 @@ namespace BQuery
         public const string Prefix = "bQuery.";
         public static readonly string ViewportPrefix = $"{Prefix}viewport.";
 
+        public static string BQueryReady => $"bqInit";
+
 
         public static string GetUserAgent => $"{Prefix}getUserAgent";
-
 
         public static string GetWidth => $"{Prefix}getWidth";
         public static string GetHeight => $"{Prefix}getHeight";
@@ -50,8 +51,6 @@ namespace BQuery
         public static string VpGetScrollWidthAndHeight => $"{ViewportPrefix}getScrollWidthAndHeight";
 
         #endregion
-
-
 
     }
 }

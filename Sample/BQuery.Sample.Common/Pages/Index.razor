@@ -1,0 +1,160 @@
+﻿@page "/"
+@using Microsoft.JSInterop
+
+@inject IJSRuntime JsRuntime
+    <div class="m-3 ">
+        UserAgent: @userAgent;
+    </div>
+
+<div class="m-3">
+    Bq.Events.OnResize(vw & vh Will probably change):<br />vw
+    vw:@vw<br />
+    vh:@vh<br />
+    scrollW:@scrollW<br />
+    scrollH:@scrollH
+</div>
+
+<div @ref="elm" class="m-3 badge-primary text-white"
+     style="height: 200px; width: 500px; padding: 10px 8px 5px 2px;">
+    style="height: 200px; width: 300px; padding: 10px 8px 5px 2px;"
+    <br />
+    Width:@width
+    <br />
+    Height:@height
+</div>
+
+<div @ref="elm2" class="m-3 badge-primary  text-white"
+     style="height: 300px; width: 500px;
+padding: 10px; overflow: scroll;">
+    style="height: 300px; width: 500px; padding: 10px 8px 5px 2px;"
+
+    <br />
+    Width:@width2
+    <br />
+    Height:@height2
+    <br />
+    ScrollW:@eleScrollW
+    <br />
+    ScrollH:@eleScrollH
+
+    @if (docPos != null)
+    {
+        <p>Position in document, X: @docPos.X, Y: @docPos.Y</p>
+    }
+    @if (vpPos != null)
+    {
+        <div class="bg-warning p-3" style="color: #000;">
+            <p>Element's position in viewport, X: @vpPos.X, Y: @vpPos.Y</p>
+        </div>
+    }
+
+    <div class="m-3 badge-secondary text-white" style="height: 200px; width: 1000px;">
+        style="height: 200px; width: 1000px;"
+
+    </div>
+</div>
+
+
+<div>
+    mouseClientX: @mouseClientX <br />
+    mouseClientY: @mouseClientY <br />
+    mouseScreenX: @mouseScreenX <br />
+    mouseScreenY: @mouseScreenY
+</div>
+
+@code{
+    private string userAgent;
+    private double width;
+    private double height;
+    private double vw;
+    private double vh;
+    private double scrollW;
+    private double scrollH;
+
+
+    private double width2;
+    private double height2;
+    private double eleScrollW;
+    private double eleScrollH;
+    private ElePosition docPos;
+    private ElePosition vpPos;
+    private double mouseClientX;
+    private double mouseClientY;
+    private double mouseScreenX;
+    private double mouseScreenY;
+
+
+    ElementReference elm;
+    ElementReference elm2;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            userAgent = await Bq.GetUserAgentAsync();
+
+            //width = await elm.GetWidthAsync();
+            //height = await elm.GetHeightAsync();
+            var whArr = await elm.GetWidthAndHeightAsync();
+            width = whArr[0];
+            height = whArr[1];
+
+            //vw = await Bq.Viewport.GetWidthAsync();
+            //vh = await Bq.Viewport.GetHeightAsync();
+            var vWhArr = await Bq.Viewport.GetWidthAndHeightAsync();
+            vw = vWhArr[0];
+            vh = vWhArr[1];
+
+            //scrollW = await Bq.Viewport.GetScrollWidthAsync();
+            //scrollH = await Bq.Viewport.GetScrollHeightAsync();
+            var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
+            scrollW = scrollWH[0];
+            scrollH = scrollWH[1];
+
+            //scroll html element
+            var whArr2 = await elm2.GetWidthAndHeightAsync();
+            width2 = whArr2[0];
+            height2 = whArr2[1];
+            var scrollWH2 = await elm2.GetScrollWidthAndHeightAsync();
+            eleScrollW = scrollWH2[0];
+            eleScrollH = scrollWH2[1];
+
+
+            Bq.Events.OnResize += OnWindowResize;
+            Bq.Events.OnScrollAsync += OnWindowScrollAsync;
+
+            Bq.Events.OnMouseMove += OnWindowMouseMove;
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void OnWindowResize(double width, double height)
+    {
+        vw = width;
+        vh = height;
+        StateHasChanged();
+    }
+
+    private async Task OnWindowScrollAsync(EventArgs e)
+    {
+        var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
+        scrollW = scrollWH[0];
+        scrollH = scrollWH[1];
+        //position
+        docPos = await elm2.GetPositionInDocAsync();
+        vpPos = await elm2.GetPositionInViewportAsync();
+        StateHasChanged();
+    }
+
+    private void OnWindowMouseMove(MouseEventArgs e)
+    {
+        mouseClientX = e.ClientX;
+        mouseClientY = e.ClientY;
+        mouseScreenX = e.ScreenX;
+        mouseScreenY = e.ScreenY;
+        StateHasChanged();
+    }
+
+}

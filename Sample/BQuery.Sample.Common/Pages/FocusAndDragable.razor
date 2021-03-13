@@ -1,0 +1,30 @@
+﻿@page "/focus"
+@using BQuery
+<input @ref="input" value="Blazor already has a native implementation" style="width: 500px;"/>
+
+<div @ref="draggable" style="height: 300px; width: 500px; border: 1px solid #ff0000;">
+    <header @ref="dragEle" style="cursor: move; background-color: #efefef; height: 50px;">header</header>
+    <div>content</div>
+    <div>
+        You can drag the div through the header
+    </div>
+</div>
+
+@code{
+    ElementReference input;
+    ElementReference draggable;
+    ElementReference dragEle;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await input.FocusAsync();
+        if (firstRender)
+        {
+            var dargOptions = new DragOptions()
+            {
+                DragElement = dragEle
+            };
+            await draggable.BindDragAsync(dargOptions);
+        }
+    }
+}

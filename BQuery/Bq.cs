@@ -11,6 +11,10 @@ namespace BQuery
 {
     public static class Bq
     {
+        public static bool IsServerSide { get; private set; }
+
+        public static IJSRuntime JsRuntime { get; set; }
+
         internal static IServiceProvider Services { get; set; }
 
         internal static T GetScopeService<T>(out IServiceScope scope)
@@ -22,7 +26,7 @@ namespace BQuery
             }
             catch (Exception)
             {
-                scope.Dispose();
+                scope.BqDispose();
                 throw;
             }
         }
@@ -34,21 +38,37 @@ namespace BQuery
 
         internal static IJSRuntime GetJsRuntime(out IServiceScope scope)
         {
-            var jsRuntime = GetScopeService<IJSRuntime>(out scope);
-            return jsRuntime;
-        }
-
-        internal static void Init(IServiceProvider services)
-        {
-            Services = services;
-            if (Viewport == null)
+            if (!IsServerSide)
             {
-                Viewport = BqViewport.CreateInstance();
+                var jsRuntime = GetScopeService<IJSRuntime>(out scope);
+                return jsRuntime;
             }
 
-            if (Events == null)
+            scope = null;
+            return JsRuntime;
+        }
+
+        internal static void BqDispose(this IServiceScope scope)
+        {
+            if (!IsServerSide)
             {
-                Events = BqEvents.CreateInstance();
+                scope?.Dispose();
+            }
+        }
+
+        internal static async void Init(IServiceProvider services, bool isServerSide = false)
+        {
+            Services = services;
+            Viewport ??= BqViewport.CreateInstance();
+            Events ??= BqEvents.CreateInstance();
+            IsServerSide = isServerSide;
+            if (!IsServerSide)
+            {
+                var jsRuntime = GetJsRuntime(out var scope);
+
+                await jsRuntime.InvokeVoidAsync(JsInteropConstants.BQueryReady);
+
+                scope.BqDispose();
             }
         }
         
@@ -76,7 +96,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -99,7 +119,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -120,7 +140,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -141,7 +161,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -165,7 +185,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -185,7 +205,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -205,7 +225,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -228,7 +248,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -247,7 +267,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -266,7 +286,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -290,7 +310,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
@@ -310,29 +330,11 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
 
         #endregion
-
-        /// <summary>
-        ///  focus <param name="element">element</param> 
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static async Task FocusAsync(this ElementReference element)
-        {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
-            {
-                await jsRuntime.InvokeVoidAsync(JsInteropConstants.Focus, element);
-            }
-            finally
-            {
-                scope.Dispose();
-            }
-        }
 
         /// <summary>
         /// bind drag for <param name="element">element</param> 
@@ -350,7 +352,7 @@ namespace BQuery
             }
             finally
             {
-                scope.Dispose();
+                scope.BqDispose();
             }
         }
     }
