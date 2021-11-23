@@ -14,14 +14,14 @@ var out_js = "./";
 gulp.task('ts', function () {
     return browserify({
         basedir: '.',
-        debug: true,
+        debug: false,
         entries: ['./src/bQuery.ts'],
         cache: {},
         packageCache: {}
     })
         .plugin(tsify)
         .transform('babelify', {
-            presets: ['es2015'],
+            presets: ['@babel/preset-env'],
             extensions: ['.ts']
         })
         .bundle()
