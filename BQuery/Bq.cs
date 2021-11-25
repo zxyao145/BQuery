@@ -31,11 +31,6 @@ namespace BQuery
             }
         }
 
-        internal static T GetScopeService<T>(IServiceScope scope)
-        {
-            return scope.ServiceProvider.GetService<T>();
-        }
-
         internal static IJSRuntime GetJsRuntime(out IServiceScope scope)
         {
             if (!IsServerSide)
@@ -44,8 +39,7 @@ namespace BQuery
                 return jsRuntime;
             }
 
-            scope = null;
-            return JsRuntime;
+            throw new NotSupportedException("Server side must pass IJSRuntime instance!");
         }
 
         internal static void BqDispose(this IServiceScope scope)
@@ -67,11 +61,10 @@ namespace BQuery
                 var jsRuntime = GetJsRuntime(out var scope);
 
                 await jsRuntime.InvokeVoidAsync(JsInteropConstants.BQueryReady);
-
                 scope.BqDispose();
             }
         }
-        
+
         /// <summary>
         /// Viewport operation
         /// </summary>
@@ -86,18 +79,12 @@ namespace BQuery
         /// get browser useragent
         /// </summary>
         /// <returns></returns>
-        public static async Task<string> GetUserAgentAsync()
+        public static async Task<string> GetUserAgentAsync(IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<string>(JsInteropConstants.GetUserAgent);
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<string>(JsInteropConstants.GetUserAgent);
+            }, jsRuntime);
         }
 
         #region WidthAndHeight
@@ -108,19 +95,12 @@ namespace BQuery
         /// <param name="element"></param>
         /// <param name="isOuter"></param>
         /// <returns></returns>
-        public static async Task<double> GetWidthAsync(this ElementReference element, bool isOuter = true)
+        public static async Task<double> GetWidthAsync(this ElementReference element, bool isOuter = true, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetWidth, element, isOuter);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double>(JsInteropConstants.GetWidth, element, isOuter);
+            }, jsRuntime);
         }
 
         /// <summary>
@@ -129,19 +109,12 @@ namespace BQuery
         /// <param name="element"></param>
         /// <param name="isOuter"></param>
         /// <returns></returns>
-        public static async Task<double> GetHeightAsync(this ElementReference element, bool isOuter = true)
+        public static async Task<double> GetHeightAsync(this ElementReference element, bool isOuter = true, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetHeight, element, isOuter);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double>(JsInteropConstants.GetHeight, element, isOuter);
+            }, jsRuntime);
         }
 
         /// <summary>
@@ -150,19 +123,12 @@ namespace BQuery
         /// <param name="element"></param>
         /// <param name="isOuter"></param>
         /// <returns></returns>
-        public static async Task<double[]> GetWidthAndHeightAsync(this ElementReference element, bool isOuter = true)
+        public static async Task<double[]> GetWidthAndHeightAsync(this ElementReference element, bool isOuter = true, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.GetWidthAndHeight, element, isOuter);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double[]>(JsInteropConstants.GetWidthAndHeight, element, isOuter);
+            }, jsRuntime);
         }
 
         #endregion
@@ -174,19 +140,12 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<double> GetScrollWidthAsync(this ElementReference element)
+        public static async Task<double> GetScrollWidthAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollWidth, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double>(JsInteropConstants.GetScrollWidth, element);
+            }, jsRuntime);
         }
 
         /// <summary>
@@ -194,19 +153,12 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<double> GetScrollHeightAsync(this ElementReference element)
+        public static async Task<double> GetScrollHeightAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollHeight, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double>(JsInteropConstants.GetScrollHeight, element);
+            }, jsRuntime);
         }
 
         /// <summary>
@@ -214,19 +166,12 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<double[]> GetScrollWidthAndHeightAsync(this ElementReference element)
+        public static async Task<double[]> GetScrollWidthAndHeightAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.GetScrollWidthAndHeight, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double[]>(JsInteropConstants.GetScrollWidthAndHeight, element);
+            }, jsRuntime);
         }
 
         #endregion
@@ -237,57 +182,36 @@ namespace BQuery
         /// get element scroll left
         /// </summary>
         /// <returns></returns>
-        public static async Task<double> GetScrollLeftAsync(this ElementReference element)
+        public static async Task<double> GetScrollLeftAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollLeft, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double>(JsInteropConstants.GetScrollLeft, element);
+            }, jsRuntime);
         }
 
         /// <summary>
         /// get element scroll top
         /// </summary>
         /// <returns></returns>
-        public static async Task<double> GetScrollTopAsync(this ElementReference element)
+        public static async Task<double> GetScrollTopAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double>(JsInteropConstants.GetScrollTop, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double>(JsInteropConstants.GetScrollTop, element);
+            }, jsRuntime);
         }
 
         /// <summary>
         /// get element scroll left and top
         /// </summary>
         /// <returns>double array: [left, top]</returns>
-        public static async Task<double[]> GetScrollLeftAndTopAsync(this ElementReference element)
+        public static async Task<double[]> GetScrollLeftAndTopAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<double[]>(JsInteropConstants.GetScrollLeftAndTop, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<double[]>(JsInteropConstants.GetScrollTop, element);
+            }, jsRuntime);
         }
 
         #endregion
@@ -299,19 +223,12 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<ElePosition> GetPositionInViewportAsync(this ElementReference element)
+        public static async Task<ElePosition> GetPositionInViewportAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<ElePosition>(JsInteropConstants.GetPositionInViewport, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<ElePosition>(JsInteropConstants.GetPositionInViewport, element);
+            }, jsRuntime);
         }
 
         /// <summary>
@@ -319,19 +236,12 @@ namespace BQuery
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static async Task<ElePosition> GetPositionInDocAsync(this ElementReference element)
+        public static async Task<ElePosition> GetPositionInDocAsync(this ElementReference element, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            return await ProxyAsync(async (js) =>
             {
-                var result = await jsRuntime.InvokeAsync<ElePosition>(JsInteropConstants.GetPositionInDoc, element);
-
-                return result;
-            }
-            finally
-            {
-                scope.BqDispose();
-            }
+                return await js.InvokeAsync<ElePosition>(JsInteropConstants.GetPositionInDoc, element);
+            }, jsRuntime);
         }
 
         #endregion
@@ -342,13 +252,47 @@ namespace BQuery
         /// <param name="element"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public static async Task BindDragAsync(this ElementReference element, DragOptions options = null)
+        public static async Task BindDragAsync(this ElementReference element, DragOptions options = null, IJSRuntime jsRuntime = null)
         {
-            var jsRuntime = GetJsRuntime(out var scope);
-            try
+            await ProxyAsync(async (js) =>
             {
                 options ??= new DragOptions();
-                await jsRuntime.InvokeVoidAsync(JsInteropConstants.BindDrag, element, options);
+                await js.InvokeVoidAsync(JsInteropConstants.BindDrag, element, options);
+            }, jsRuntime);
+
+
+            //IServiceScope scope = null;
+            //jsRuntime ??= GetJsRuntime(out scope);
+            //try
+            //{
+            //}
+            //finally
+            //{
+            //    scope.BqDispose();
+            //}
+        }
+
+        internal static async Task ProxyAsync(Func<IJSRuntime, Task> func, IJSRuntime jsRuntime = null)
+        {
+            IServiceScope scope = null;
+            jsRuntime ??= GetJsRuntime(out scope);
+            try
+            {
+                await func.Invoke(jsRuntime);
+            }
+            finally
+            {
+                scope.BqDispose();
+            }
+        }
+
+        internal static async Task<T> ProxyAsync<T>(Func<IJSRuntime, Task<T>> func, IJSRuntime jsRuntime = null)
+        {
+            IServiceScope scope = null;
+            jsRuntime ??= GetJsRuntime(out scope);
+            try
+            {
+                return await func.Invoke(jsRuntime);
             }
             finally
             {
