@@ -19,7 +19,7 @@ namespace BQuery
 
         public static IHost UseBQuery(this IHost webAssemblyHost)
         {
-            Bq.Init(webAssemblyHost.Services, true);
+            Bq.Init(webAssemblyHost.Services);
             return webAssemblyHost;
         }
     }

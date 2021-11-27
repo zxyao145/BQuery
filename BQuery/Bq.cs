@@ -11,7 +11,10 @@ namespace BQuery
 {
     public static class Bq
     {
-        public static bool IsServerSide { get; private set; }
+        [Obsolete("please replace it with Bq.IsWasm()")]
+        public static bool IsServerSide => !IsWasm;
+
+        public static bool IsWasm { get; private set; }
 
         public static IJSRuntime JsRuntime { get; set; }
 
@@ -33,7 +36,7 @@ namespace BQuery
 
         internal static IJSRuntime GetJsRuntime(out IServiceScope scope)
         {
-            if (!IsServerSide)
+            if (IsWasm)
             {
                 var jsRuntime = GetScopeService<IJSRuntime>(out scope);
                 return jsRuntime;
@@ -49,7 +52,7 @@ namespace BQuery
 
         internal static void BqDispose(this IServiceScope scope)
         {
-            if (!IsServerSide)
+            if (IsWasm)
             {
                 scope?.Dispose();
             }
@@ -60,11 +63,10 @@ namespace BQuery
             Services = services;
             Viewport ??= BqViewport.CreateInstance();
             Events ??= BqEvents.CreateInstance();
-            IsServerSide = isServerSide;
-            if (!IsServerSide)
+            IsWasm = OperatingSystem.IsBrowser();
+            if (IsWasm)
             {
                 var jsRuntime = GetJsRuntime(out var scope);
-
                 await jsRuntime.InvokeVoidAsync(JsInteropConstants.BQueryReady);
                 scope.BqDispose();
             }
