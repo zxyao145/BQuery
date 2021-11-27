@@ -1,10 +1,9 @@
 ﻿@page "/"
-@using Microsoft.JSInterop
-
 @inject IJSRuntime JsRuntime
-    <div class="m-3 ">
-        UserAgent: @userAgent;
-    </div>
+
+<div class="m-3 ">
+    UserAgent: @userAgent;
+</div>
 
 <div class="m-3">
     Bq.Events.OnResize(vw & vh Will probably change):<br />vw
@@ -15,8 +14,8 @@
 </div>
 
 <div @ref="elm" class="m-3 badge-primary text-white"
-     style="height: 200px; width: 500px; padding: 10px 8px 5px 2px;">
-    style="height: 200px; width: 500px; padding: 10px 8px 5px 2px;"
+     style="width: 500px; height: 200px; padding: 10px 8px 5px 2px;">
+    style="width: 500px; height: 200px; padding: 10px 8px 5px 2px;"
     <br />
     Width:@width
     <br />
@@ -24,9 +23,8 @@
 </div>
 
 <div @ref="elm2" class="m-3 badge-primary  text-white"
-     style="height: 300px; width: 500px;
-padding: 10px; overflow: scroll;">
-    style="height: 300px; width: 500px; padding: 10px 8px 5px 2px;"
+     style="width: 500px; height: 300px; padding: 10px; overflow: scroll;">
+    style="width: 500px; height: 300px; padding: 10px 8px 5px 2px;"
 
     <br />
     Width:@width2
@@ -44,7 +42,7 @@ padding: 10px; overflow: scroll;">
     @if (vpPos != null)
     {
         <div class="bg-warning p-3" style="color: #000;">
-            <p>Element's position in viewport, X: @vpPos.X, Y: @vpPos.Y</p>
+            <p>Element's position in viewport, X: @vpPos.X.ToString("0.00"), Y: @vpPos.Y.ToString("0.00")</p>
         </div>
     }
 
@@ -62,7 +60,7 @@ padding: 10px; overflow: scroll;">
     mouseScreenY: @mouseScreenY
 </div>
 
-@code{
+@code {
     private string userAgent;
     private double width;
     private double height;
@@ -90,39 +88,41 @@ padding: 10px; overflow: scroll;">
     {
         if (firstRender)
         {
-            userAgent = await Bq.GetUserAgentAsync();
+            userAgent = await Bq.GetUserAgentAsync(JsRuntime);
 
-            //width = await elm.GetWidthAsync();
-            //height = await elm.GetHeightAsync();
-            var whArr = await elm.GetWidthAndHeightAsync();
+            //width = await elm.GetWidthAsync(jsRuntime: JsRuntime);
+            //height = await elm.GetHeightAsync(jsRuntime: JsRuntime);
+            var whArr = await elm.GetWidthAndHeightAsync(jsRuntime: JsRuntime);
             width = whArr[0];
             height = whArr[1];
 
-            //vw = await Bq.Viewport.GetWidthAsync();
-            //vh = await Bq.Viewport.GetHeightAsync();
-            var vWhArr = await Bq.Viewport.GetWidthAndHeightAsync();
+            //vw = await Bq.Viewport.GetWidthAsync(JsRuntime);
+            //vh = await Bq.Viewport.GetHeightAsync(JsRuntime);
+            var vWhArr = await Bq.Viewport.GetWidthAndHeightAsync(JsRuntime);
             vw = vWhArr[0];
             vh = vWhArr[1];
 
-            //scrollW = await Bq.Viewport.GetScrollWidthAsync();
-            //scrollH = await Bq.Viewport.GetScrollHeightAsync();
-            var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
+            //scrollW = await Bq.Viewport.GetScrollWidthAsync(JsRuntime);
+            //scrollH = await Bq.Viewport.GetScrollHeightAsync(JsRuntime);
+            var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync(JsRuntime);
             scrollW = scrollWH[0];
             scrollH = scrollWH[1];
 
             //scroll html element
-            var whArr2 = await elm2.GetWidthAndHeightAsync();
+            var whArr2 = await elm2.GetWidthAndHeightAsync(jsRuntime: JsRuntime);
             width2 = whArr2[0];
             height2 = whArr2[1];
-            var scrollWH2 = await elm2.GetScrollWidthAndHeightAsync();
+            var scrollWH2 = await elm2.GetScrollWidthAndHeightAsync(JsRuntime);
             eleScrollW = scrollWH2[0];
             eleScrollH = scrollWH2[1];
 
-
-            Bq.Events.OnResize += OnWindowResize;
+            // Bq.Events.OnResize += OnWindowResize;
+            Bq.Events.OnResizeAsync += OnWindowResizeAsync;
             Bq.Events.OnScrollAsync += OnWindowScrollAsync;
 
             Bq.Events.OnMouseMove += OnWindowMouseMove;
+
+            vpPos = await elm2.GetPositionInViewportAsync(jsRuntime: JsRuntime);
 
             StateHasChanged();
         }
@@ -130,21 +130,27 @@ padding: 10px; overflow: scroll;">
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private void OnWindowResize(double width, double height)
+    private async Task OnWindowResizeAsync(double width, double height)
     {
         vw = width;
         vh = height;
+
+        var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync(jsRuntime: JsRuntime);
+        scrollW = scrollWH[0];
+        scrollH = scrollWH[1];
+
+        var vWhArr = await Bq.Viewport.GetWidthAndHeightAsync(JsRuntime);
+        vw = vWhArr[0];
+        vh = vWhArr[1];
         StateHasChanged();
     }
 
     private async Task OnWindowScrollAsync(EventArgs e)
     {
-        var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
-        scrollW = scrollWH[0];
-        scrollH = scrollWH[1];
         //position
-        docPos = await elm2.GetPositionInDocAsync();
-        vpPos = await elm2.GetPositionInViewportAsync();
+        docPos = await elm2.GetPositionInDocAsync(jsRuntime: JsRuntime);
+        vpPos = await elm2.GetPositionInViewportAsync(jsRuntime: JsRuntime);
+
         StateHasChanged();
     }
 
