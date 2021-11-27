@@ -22,19 +22,15 @@ An extended library of interaction between blazor and js. And The name mimics jQ
 
 # 2.Usage
 
-## 2.1. Be careful !!!
+## 2.1.For WASM
 
-This is **friendly to WASM** and **not friendly to Server** mode, because the Server mode is used, `IJSRuntime` needs to be injected manually, this is to be compatible with both ServerPrerendered and Server render-mode.
-
-## 2.2.For WASM
-
-### 2.2.1.Add js to wwwroot/index.html
+### 2.1.1.Add js to wwwroot/index.html
 
 ```js
 <script src="_content/BQuery/bQuery.min.js"></script>
 ```
 
-### 2.2.2.Modify the `Main ` method in Program.cs 
+### 2.1.2.Modify the `Main ` method in Program.cs 
 
 change 
 
@@ -50,19 +46,21 @@ await builder.Build()
 	.RunAsync();
 ```
 
-### 2.2.3.using namespace
+### 2.1.3.using namespace
 
 ```c#
 using BQuery;
 ```
 
+
+
 See "**Sample\BQuery.Sample.Wasm**" and "**Sample\BQuery.Sample.Common**" for details.
 
 
 
-## 2.3.For server side
+## 2.2.For server side
 
-### 2.3.1Add js to Pages/_host.html
+### 2.2.1Add js to Pages/_host.html
 
 In server side, you must manually initialize bquery as follows:
 
@@ -84,7 +82,29 @@ In server side, you must manually initialize bquery as follows:
 
 
 
-### 2.3.2.Modify the `Main ` method in Program.cs 
+### 2.2.2.Modify `App.razor`
+
+To get the `IJSRuntime`  in the context of mounting DOM, you must add or modify the partial class `App` file **App.razor.cs**, and inject `IJSRuntime` as follows:
+
+```
+public partial class App
+{
+    [Inject]
+    public IJSRuntime JsRuntime { get; set; }
+
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Bq.JsRuntime = JsRuntime;
+            base.OnAfterRender(firstRender);
+        }
+    }
+}
+```
+
+### 2.2.3.Modify the `Main ` method in Program.cs 
 
 change 
 
@@ -100,21 +120,7 @@ CreateHostBuilder(args).Build()
                 .Run();
 ```
 
-
-### 2.3.3.inject `IJSRuntime`
-
-To get the `IJSRuntime` in the context of mounting DOM, you must inject `IJSRuntime` in your component and set the optional parameter (named jsRuntime) of the method as follows:
-
-```
-@inject IJSRuntime JsRuntime
-
-....
-
-await draggable.BindDragAsync(dargOptions, jsRuntime: JsRuntime);
-
-```
-
-### 2.3.4.using namespace
+### 2.2.4.using namespace
 
 ```c#
 using BQuery;

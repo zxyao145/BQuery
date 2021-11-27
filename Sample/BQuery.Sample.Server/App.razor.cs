@@ -10,7 +10,7 @@ namespace BQuery.Sample.Server
     public partial class App
     {
         [Inject]
-        public IJSRuntime JsRuntime{get;set;}
+        public IJSRuntime JsRuntime { get; set; }
 
 
         protected override void OnAfterRender(bool firstRender)
