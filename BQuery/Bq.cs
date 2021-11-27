@@ -39,6 +39,11 @@ namespace BQuery
                 return jsRuntime;
             }
 
+            if(JsRuntime != null)
+            {
+                scope = null;
+                return JsRuntime;
+            }
             throw new NotSupportedException("Server side must pass IJSRuntime instance!");
         }
 

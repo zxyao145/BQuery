@@ -10,10 +10,16 @@ namespace BQuery.Sample.Server
     public partial class App
     {
         [Inject]
-        public IJSRuntime JsRuntime
+        public IJSRuntime JsRuntime{get;set;}
+
+
+        protected override void OnAfterRender(bool firstRender)
         {
-            get => Bq.JsRuntime;
-            set => Bq.JsRuntime = value;
+            if (firstRender)
+            {
+                Bq.JsRuntime = JsRuntime;
+                base.OnAfterRender(firstRender);
+            }
         }
     }
 }
