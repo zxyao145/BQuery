@@ -2,15 +2,29 @@
 
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BQuery)](https://www.nuget.org/packages/BQuery/)
 
-An extended library of interaction between blazor and js. And The name mimics jQuery.  Now upgrade to .NET 5.
+An extended library of interaction between blazor and js. And The name mimics jQuery.  Now upgrade to .NET 6.
 
 [Live demo]( https://zxyao145.github.io/BQuery/)
+
+## 1.1. Support
+
+1. WASM （friendly）
+2. Server mode：（not friendly）
+   1. ServerPrerendered
+   2. Server
+
+## 1.2. version
+
+| BQuery version | .NET version |
+| -------------- | ------------ |
+| 3.x            | .NET 6       |
+| 2.x            | .NET 5       |
 
 # 2.Usage
 
 ## 2.1. Be careful !!!
 
-This is **friendly to WASM** and **not friendly to Server** mode，because the Server mode is used, `IJSRuntime` needs to be injected manually
+This is **friendly to WASM** and **not friendly to Server** mode, because the Server mode is used, `IJSRuntime` needs to be injected manually, this is to be compatible with both ServerPrerendered and Server render-mode.
 
 ## 2.2.For WASM
 
