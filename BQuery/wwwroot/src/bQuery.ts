@@ -1,7 +1,7 @@
 ﻿import "./global";
 
 (() => {
-    var version = "3.0.0";
+    var version = "3.0.2";
     var DotNet = window.DotNet;
 
     //#region interfaces

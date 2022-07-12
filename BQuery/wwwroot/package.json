@@ -14,7 +14,6 @@
   "author": "zxyao",
   "license": "MIT",
   "devDependencies": {
-    "glob-parent": ">=5.1.2",
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
     "@types/es6-promise": "^3.3.0",
