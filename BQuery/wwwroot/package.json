@@ -14,8 +14,8 @@
   "author": "zxyao",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.16.4",
+    "@babel/core": "^7.19.3",
+    "@babel/preset-env": "^7.19.3",
     "@types/es6-promise": "^3.3.0",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
@@ -25,10 +25,10 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify": "^3.0.2",
     "tsify": "^5.0.4",
-    "typescript": "^4.5.2",
+    "typescript": "^4.8.4",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
-    "yargs": "^17.2.1"
+    "yargs": "^17.6.0"
   },
   "dependencies": {}
 }
