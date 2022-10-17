@@ -20,16 +20,16 @@ namespace BQuery.Sample.Common.Pages
                 Bq.Events.OnKeyDown += Events_OnKeyDown;
                 Bq.Events.OnBlur += Events_OnBlur;
                 Bq.Events.OnFocus += Events_OnFocus;
-                Bq.Events.OnTouchStart += Events_OnTouchStart;
+                Bq.Events.OnTouchStartAsync += Events_OnTouchStart;
             }
             await base.OnAfterRenderAsync(firstRender);
         }
 
         private TouchPoint[] _touchPoints;
-        private void Events_OnTouchStart(TouchEventArgs obj)
+        private async Task Events_OnTouchStart(TouchEventArgs obj)
         {
             _touchPoints = obj.Touches;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         private List<string> _focusLogs = new List<string>();

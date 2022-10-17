@@ -44,8 +44,9 @@
     {
         foreach (var touchPoint in _touchPoints)
         {
-            @("touchPoint.ClientX:" + @touchPoint.ClientX + "touchPoint.ClientY:" + @touchPoint.ClientY) 
+            @("touchPoint.ClientX:" + @touchPoint.ClientX) 
             <br />
+            @("touchPoint.ClientY:" + @touchPoint.ClientY)
         }
     }
 </div>

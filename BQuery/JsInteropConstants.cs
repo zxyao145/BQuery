@@ -52,5 +52,17 @@ namespace BQuery
 
         #endregion
 
+
+        #region dom helper
+
+        public static readonly string DomHelperPrefix = $"{Prefix}domHelper.";
+
+        public static string DomHelperAttr => $"{ViewportPrefix}attr";
+        public static string DomHelperAddCls => $"{ViewportPrefix}addCls";
+        public static string DomHelperRemoveCls => $"{ViewportPrefix}removeCls";
+        public static string DomHelperCss => $"{ViewportPrefix}css";
+
+        #endregion
+
     }
 }

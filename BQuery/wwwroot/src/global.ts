@@ -4,7 +4,8 @@ declare global {
         bQuery: any;
         bqInit: () => void;
         DotNet: any;
+        autoDebug: Function;
     }
 }
 
-export { }
+export {  }
