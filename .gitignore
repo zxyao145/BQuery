@@ -342,3 +342,4 @@ healthchecksdb
 *.mp4
 BQuery/wwwroot/bQuery.min.js.map
 BQuery/wwwroot/bQuery.min.js
+/BQuery/wwwroot/bQuery.min.js

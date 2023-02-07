@@ -1,5 +1,4 @@
 ﻿import { defineConfig } from 'vite'
-import legacy from '@vitejs/plugin-legacy'
 
 // 文件入口，input file
 const entryFileNames = {
