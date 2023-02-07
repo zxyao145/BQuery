@@ -8,7 +8,7 @@ import { debounce, throttle } from "./module/common";
 import * as domHelper from "./module/domHelper"
 
 (() => {
-    var version = "3.0.2";
+    var version = "3.1.0";
 
     //#region viewport
     var bq = {
