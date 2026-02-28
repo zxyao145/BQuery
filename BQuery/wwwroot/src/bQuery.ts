@@ -1,6 +1,6 @@
 ﻿import "./global";
 
-import Viewport from "./module/ViewPort"
+import Viewport from "./module/Viewport"
 import htmlElementHelper from "./module/HtmlElementHelper"
 import * as dragHelper from "./module/DragHelper"
 import { bindEvent } from "./module/eventHelper"
@@ -42,4 +42,3 @@ import * as domHelper from "./module/domHelper"
 
     window.bqInit = bQueryReady;
 })();
-
