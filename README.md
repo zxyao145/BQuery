@@ -142,6 +142,10 @@ Window on scroll
 
 # 4.Api
 
+- C# [API](./API.md)
+
+- TS [TS API](./TS-API.md)
+
 ## 4.1.`Bq Static member (not contains extension methods)`
 
 | **name**                           | describe                    | return    |
