@@ -7,6 +7,10 @@
     <Project Path="Sample/BQuery.Sample.Server/BQuery.Sample.Server.csproj" />
     <Project Path="Sample/BQuery.Sample.Wasm/BQuery.Sample.Wasm.csproj" />
   </Folder>
+  <Folder Name="/Sample/BlazorAppAuto/">
+    <Project Path="Sample/BlazorAppAuto/BlazorAppAuto.Client/BlazorAppAuto.Client.csproj" Id="cb495c39-79e6-48ce-be24-44c151d78d97" />
+    <Project Path="Sample/BlazorAppAuto/BlazorAppAuto/BlazorAppAuto.csproj" Id="0dd5fa68-eb5e-4ad5-8773-9416482ba495" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path=".gitignore" />

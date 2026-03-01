@@ -1,10 +1,17 @@
 ﻿
-export const getDom = (element: string | Element | null) => {
-    if (typeof element === 'string') {
-        element = document.querySelector(element);
-    }
-    return element;
-}
+export const getDom = (element: string | Element) => {
+  let ele: Element | null = null;
+  if (typeof element === "string") {
+    ele = document.querySelector(element);
+  } else {
+    ele = element;
+  }
+  if (ele == null) {
+    console.warn(`Element ${element} not found`);
+    throw new Error(`Element ${element} not found`);
+  }
+  return ele;
+};
 
 export const attr = (selector: string | Element, key: string, value: string | null = null) => {
     let dom = getDom(selector);

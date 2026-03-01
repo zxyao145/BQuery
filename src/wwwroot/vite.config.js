@@ -13,10 +13,15 @@ export default defineConfig(({ mode }) => {
       watch: isProd ? null : {},
       minify: isProd,
       lib: {
-        entry: './src/bQuery.ts',
+        entry: './src/index.ts',
         name: 'bQuery',
-        formats: ['iife'],
-        fileName: () => 'bQuery.min.js',
+        formats: ['es', 'umd'],
+        fileName: (format) => {
+          if(format === "es") {
+            return "bQuery.min.mjs";
+          }
+          return "bQuery.min.js";
+        },
       },
     },
   };

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<AssemblyVersion>10.0.0.0</AssemblyVersion>
 		<FileVersion>10.0.0.0</FileVersion>
 		<Version>10.0.0</Version>
@@ -14,6 +14,7 @@
 		</Description>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup Condition=" $(TargetFramework) == 'net6.0' ">
@@ -40,7 +41,6 @@
 		<DefaultItemExcludes>
 			$(DefaultItemExcludes);
 			wwwroot\src\**;
-			wwwroot\dist\**;
 			wwwroot\package.json;
 			wwwroot\pnpm-lock.yaml;
 			wwwroot\tsconfig.json;

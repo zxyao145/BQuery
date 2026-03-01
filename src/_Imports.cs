@@ -1,0 +1,9 @@
+﻿global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Text;
+global using System.Threading.Tasks;
+global using Microsoft.JSInterop;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.AspNetCore.Components.Web;
+global using Microsoft.AspNetCore.Components;

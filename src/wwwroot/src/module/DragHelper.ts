@@ -180,7 +180,10 @@ class Dragger {
     }
 }
 
-function addDraggable(trigger: HTMLElement | string, container: HTMLElement | string, dragInViewport: boolean = true) {
+function addDraggable(trigger: HTMLElement | string | null, container: HTMLElement | string, dragInViewport: boolean = true) {
+    if(!trigger){
+        return;
+    }
     let triggerEle = getDom(trigger) as HTMLElement;
     if (triggerEle != null) {
         let dragger = eventMap.get(triggerEle);
@@ -221,9 +224,8 @@ interface IDragOptions {
 }
 
 const bindDrag = (dom: HTMLElement, options: IDragOptions) => {
-    addDraggable(options.dragElement, dom, options.inViewport)
-
-}
+    addDraggable(options.dragElement, dom, options.inViewport);
+};
 
 //#endregion bindDrag
 

@@ -1,5 +1,9 @@
 ﻿@page "/focus"
 @using BQuery
+@inject IJSRuntime jSRuntime
+@inject BqObject bq
+
+
 
 <input @ref="input" value="Blazor already has a native implementation" style="width: 500px;"/>
 
@@ -25,7 +29,7 @@
             {
                 DragElement = dragEle
             };
-            await draggable.BindDragAsync(dargOptions);
+            await bq.BindDragAsync(draggable, dargOptions);
         }
     }
 }

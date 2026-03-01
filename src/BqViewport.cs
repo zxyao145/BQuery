@@ -1,154 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.JSInterop;
+﻿namespace BQuery;
 
-namespace BQuery
+public class BqViewport
 {
-    public class BqViewport
+    private readonly IJSRuntime _js;
+
+
+    private Lazy<Task<IJSObjectReference>> moduleTask;
+    private IJSObjectReference _module;
+
+    public BqViewport(IJSRuntime jsRuntime)
     {
-        private BqViewport()
+        this._js = jsRuntime;
+        moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
+           "import", JsModuleConstants.MJS).AsTask());
+    }
+
+    private async ValueTask<IJSObjectReference> GetModuleAsync()
+    {
+        if (_module != null)
         {
+            return _module;
         }
+        var v = await moduleTask.Value;
+        _module = await v.InvokeAsync<IJSObjectReference>("getViewport");
+        return _module;
+    }
 
-        private static BqViewport _instance;
-        private static int _lock = 0;
 
-        internal static BqViewport CreateInstance()
-        {
-            if (_instance == null)
-            {
-                if (Interlocked.CompareExchange(ref _lock, 1, 0) == 0)
-                {
-                    _instance = new BqViewport();
-                    Interlocked.Increment(ref _lock);
-                }
+    #region width height
 
-                while (Interlocked.CompareExchange(ref _lock, 1, 1) == 1)
-                {
-                    Thread.Sleep(100);
-                }
-            }
+    /// <summary>
+    /// get viewport width
+    /// </summary>
+    /// <returns></returns>
+    public async Task<double> GetWidthAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetWidth);
+    }
 
-            return _instance;
-        }
+    /// <summary>
+    /// get viewport height
+    /// </summary>
+    /// <returns></returns>
+    public async Task<double> GetHeightAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetHeight);
+    }
 
-        #region width height
+    /// <summary>
+    /// get viewport width and height
+    /// </summary>
+    /// <returns>double array: [width,height]</returns>
+    public async Task<double[]> GetWidthAndHeightAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetWidthAndHeight);
+    }
 
-        /// <summary>
-        /// get viewport width
-        /// </summary>
-        /// <returns></returns>
-        public async Task<double> GetWidthAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double>(JsInteropConstants.VpGetWidth);
-            }, jsRuntime);
-        }
+    #endregion
 
-        /// <summary>
-        /// get viewport height
-        /// </summary>
-        /// <returns></returns>
-        public async Task<double> GetHeightAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double>(JsInteropConstants.VpGetHeight);
-            }, jsRuntime);
-        }
+    #region Scroll
 
-        /// <summary>
-        /// get viewport width and height
-        /// </summary>
-        /// <returns>double array: [width,height]</returns>
-        public async Task<double[]> GetWidthAndHeightAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double[]>(JsInteropConstants.VpGetWidthAndHeight);
-            }, jsRuntime);
-        }
+    /// <summary>
+    /// get viewport scroll width
+    /// </summary>
+    /// <returns></returns>
+    public async Task<double> GetScrollWidthAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollWidth);
+    }
 
-        #endregion
-      
-        #region Scroll
+    /// <summary>
+    /// get viewport scroll height
+    /// </summary>
+    /// <returns></returns>
+    public async Task<double> GetScrollHeightAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollHeight);
+    }
 
-        /// <summary>
-        /// get viewport scroll width
-        /// </summary>
-        /// <returns></returns>
-        public async Task<double> GetScrollWidthAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double>(JsInteropConstants.VpGetScrollWidth);
-            }, jsRuntime);
-        }
+    /// <summary>
+    /// get viewport scroll width and height
+    /// </summary>
+    /// <returns>double array: [width,height]</returns>
+    public async Task<double[]> GetScrollWidthAndHeightAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetScrollWidthAndHeight);
+    }
 
-        /// <summary>
-        /// get viewport scroll height
-        /// </summary>
-        /// <returns></returns>
-        public async Task<double> GetScrollHeightAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double>(JsInteropConstants.VpGetScrollHeight);
-            }, jsRuntime);
-        }
+    #endregion
 
-        /// <summary>
-        /// get viewport scroll width and height
-        /// </summary>
-        /// <returns>double array: [width,height]</returns>
-        public async Task<double[]> GetScrollWidthAndHeightAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double[]>(JsInteropConstants.VpGetScrollWidthAndHeight);
-            }, jsRuntime);
-        }
+    /// <summary>
+    /// get viewport scroll left
+    /// </summary>
+    /// <returns></returns>
+    public async Task<double> GetScrollLeftAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollLeft);
+    }
 
-        #endregion
+    /// <summary>
+    /// get viewport scroll top
+    /// </summary>
+    /// <returns></returns>
+    public async Task<double> GetScrollTopAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollTop);
+    }
 
-        /// <summary>
-        /// get viewport scroll left
-        /// </summary>
-        /// <returns></returns>
-        public async Task<double> GetScrollLeftAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double>(JsInteropConstants.VpGetScrollLeft);
-            }, jsRuntime);
-        }
-
-        /// <summary>
-        /// get viewport scroll top
-        /// </summary>
-        /// <returns></returns>
-        public async Task<double> GetScrollTopAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double>(JsInteropConstants.VpGetScrollTop);
-            }, jsRuntime);
-        }
-
-        /// <summary>
-        /// get viewport scroll left and top
-        /// </summary>
-        /// <returns>double array: [left, top]</returns>
-        public async Task<double[]> GetScrollLeftAndTopAsync(IJSRuntime jsRuntime = null)
-        {
-            return await Bq.ProxyAsync(async (js) =>
-            {
-                return await js.InvokeAsync<double[]>(JsInteropConstants.VpGetScrollLeftAndTop);
-            }, jsRuntime);
-        }
+    /// <summary>
+    /// get viewport scroll left and top
+    /// </summary>
+    /// <returns>double array: [left, top]</returns>
+    public async Task<double[]> GetScrollLeftAndTopAsync()
+    {
+        return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetScrollLeftAndTop);
     }
 }

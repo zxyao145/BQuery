@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace BQuery.Sample.Common.Pages
@@ -12,14 +13,14 @@ namespace BQuery.Sample.Common.Pages
         {
             if (firstRender)
             {
-                Bq.Events.OnMouseMove += Events_OnMouseMove;
-                Bq.Events.OnClick += Events_OnClick;
-                Bq.Events.OnDbClick += Events_OnDbClick;
-                Bq.Events.OnMouseDown += Events_OnMouseDown;
-                Bq.Events.OnMouseUp += Events_OnMouseUp;
-                Bq.Events.OnKeyDown += Events_OnKeyDown;
-                Bq.Events.OnBlur += Events_OnBlur;
-                Bq.Events.OnFocus += Events_OnFocus;
+                Bq.Events.OnMouseMoveAsync += Events_OnMouseMove;
+                Bq.Events.OnClickAsync += Events_OnClick;
+                Bq.Events.OnDbClickAsync += Events_OnDbClick;
+                Bq.Events.OnMouseDownAsync += Events_OnMouseDown;
+                Bq.Events.OnMouseUpAsync += Events_OnMouseUp;
+                Bq.Events.OnKeyDownAsync += Events_OnKeyDown;
+                Bq.Events.OnBlurAsync += Events_OnBlur;
+                Bq.Events.OnFocusAsync += Events_OnFocus;
                 Bq.Events.OnTouchStartAsync += Events_OnTouchStart;
             }
             await base.OnAfterRenderAsync(firstRender);
@@ -33,43 +34,43 @@ namespace BQuery.Sample.Common.Pages
         }
 
         private List<string> _focusLogs = new List<string>();
-        private void Events_OnFocus(FocusEventArgs obj)
+        private async Task Events_OnFocus(FocusEventArgs obj)
         {
             _focusLogs.Add("Focus: " + DateTime.Now);
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
-        private void Events_OnBlur(FocusEventArgs obj)
+        private async Task Events_OnBlur(FocusEventArgs obj)
         {
             _focusLogs.Add("Blur: " + DateTime.Now);
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         private StringBuilder _sb = new StringBuilder();
         private string _curKey;
-        private void Events_OnKeyDown(KeyboardEventArgs obj)
+        private async Task Events_OnKeyDown(KeyboardEventArgs obj)
         {
             _curKey = obj.Key;
             _sb.Append(_curKey);
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         private double _mouseUpX;
         private double _mouseUpY;
-        private void Events_OnMouseUp(MouseEventArgs obj)
+        private async Task Events_OnMouseUp(MouseEventArgs obj)
         {
             _mouseUpX = obj.ClientX;
             _mouseUpY = obj.ClientY;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         private double _mouseDownX;
         private double _mouseDownY;
-        private void Events_OnMouseDown(MouseEventArgs obj)
+        private async Task Events_OnMouseDown(MouseEventArgs obj)
         {
             _mouseDownX = obj.ClientX;
             _mouseDownY = obj.ClientY;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
 
@@ -79,23 +80,23 @@ namespace BQuery.Sample.Common.Pages
         private double _dbClickY;
         private bool _shiftKey;
 
-        private void Events_OnDbClick(MouseEventArgs obj)
+        private async Task Events_OnDbClick(MouseEventArgs obj)
         {
             _dbClickX = obj.ClientX;
             _dbClickY = obj.ClientY;
             _shiftKey = obj.ShiftKey;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         private double _clickX;
         private double _clickY;
         private bool _ctrlKey;
-        private void Events_OnClick(MouseEventArgs obj)
+        private async Task Events_OnClick(MouseEventArgs obj)
         {
             _clickX = obj.ClientX;
             _clickY = obj.ClientY;
             _ctrlKey = obj.CtrlKey;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
         private double _clientX;
@@ -103,13 +104,13 @@ namespace BQuery.Sample.Common.Pages
         private double _screenX;
         private double _screenY;
 
-        private void Events_OnMouseMove(MouseEventArgs obj)
+        private async Task Events_OnMouseMove(MouseEventArgs obj)
         {
             _clientX = obj.ClientX;
             _clientY = obj.ClientY;
             _screenX = obj.ScreenX;
             _screenY = obj.ScreenY;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
 
 
