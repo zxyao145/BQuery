@@ -1,6 +1,6 @@
 ﻿import "../global"
 import { throttle } from "./common";
-import Viewport from "./ViewPort";
+import Viewport from "./Viewport";
 
 interface IEventConvertor {
     toMouseEvent: Function,

@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/.github/">
+    <File Path=".github/workflows/dotnet-tag.yml" />
+  </Folder>
+  <Folder Name="/Sample/">
+    <Project Path="Sample/BQuery.Sample.Common/BQuery.Sample.Common.csproj" />
+    <Project Path="Sample/BQuery.Sample.Server/BQuery.Sample.Server.csproj" />
+    <Project Path="Sample/BQuery.Sample.Wasm/BQuery.Sample.Wasm.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="API.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/BQuery.csproj" />
+</Solution>

@@ -5,7 +5,7 @@
   "main": "bQuery.js",
   "scripts": {
     "dev": "vite build --config vite.config.js --mode development",
-    "build": "vite build --config vite.config.js --mode production"
+    "build": "vite build --config vite.config.js --mode production && node -e \"require('fs').copyFileSync('dist/bQuery.min.js','bQuery.min.js')\""
   },
   "keywords": [
     "bquery",
@@ -15,8 +15,8 @@
   "author": "zxyao",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^18.11.0",
-    "typescript": "^4.8.4",
-    "vite": "^6.4.1"
+    "@types/node": "^25.3.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   }
 }

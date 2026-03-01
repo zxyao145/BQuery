@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
+		<AssemblyVersion>10.0.0.0</AssemblyVersion>
+		<FileVersion>10.0.0.0</FileVersion>
+		<Version>10.0.0</Version>
+		<PackageId>BQuery</PackageId>
+		<Authors>zxyao</Authors>
+		<PackageTags>BQuery;blazor heplers;blazor extensions;</PackageTags>
+		<RepositoryUrl>https://github.com/zxyao145/BQuery</RepositoryUrl>
+		<Description>
+			An extended library of interaction between blazor and js. And The name mimics jQuery.
+		</Description>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" $(TargetFramework) == 'net6.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.36" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.36" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" $(TargetFramework) == 'net8.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.24" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.24" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" $(TargetFramework) == 'net10.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.3" />
+	</ItemGroup>
+
+	
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+		<DefaultItemExcludes>
+			$(DefaultItemExcludes);
+			wwwroot\src\**;
+			wwwroot\dist\**;
+			wwwroot\package.json;
+			wwwroot\pnpm-lock.yaml;
+			wwwroot\tsconfig.json;
+			wwwroot\vite.config.js;
+		</DefaultItemExcludes>
+	</PropertyGroup>
+
+	<Target Name="RunGulp" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Release' ">
+		<Exec WorkingDirectory="wwwroot" Command="pnpm run build" />
+
+		<ItemGroup>
+			<None Include="wwwroot\bQuery.min.js" />
+		</ItemGroup>
+	</Target>
+</Project>

@@ -340,6 +340,6 @@ ASALocalRun/
 healthchecksdb
 
 *.mp4
-BQuery/wwwroot/bQuery.min.js.map
-BQuery/wwwroot/bQuery.min.js
-/BQuery/wwwroot/bQuery.min.js
+src/wwwroot/bQuery.min.js.map
+src/wwwroot/bQuery.min.js
+dist/
