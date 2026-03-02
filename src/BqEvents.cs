@@ -5,33 +5,122 @@ namespace BQuery;
 /// </summary>
 public class BqEvents
 {
+    // Reusable slot type so new window events only need a backing field plus the public declarations.
+    private sealed class EventSlot<T>
+    {
+        private Action<T>? _syncHandlers;
+        private Func<T, Task>? _asyncHandlers;
+
+        public event Action<T>? Sync
+        {
+            add => _syncHandlers += value;
+            remove => _syncHandlers -= value;
+        }
+
+        public event Func<T, Task>? Async
+        {
+            add => _asyncHandlers += value;
+            remove => _asyncHandlers -= value;
+        }
+
+        public async Task InvokeAsync(T args)
+        {
+            _syncHandlers?.Invoke(args);
+
+            if (_asyncHandlers is null)
+            {
+                return;
+            }
+
+            foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T, Task>>())
+            {
+                await handler(args);
+            }
+        }
+    }
+
+    private sealed class EventSlot<T1, T2>
+    {
+        private Action<T1, T2>? _syncHandlers;
+        private Func<T1, T2, Task>? _asyncHandlers;
+
+        public event Action<T1, T2>? Sync
+        {
+            add => _syncHandlers += value;
+            remove => _syncHandlers -= value;
+        }
+
+        public event Func<T1, T2, Task>? Async
+        {
+            add => _asyncHandlers += value;
+            remove => _asyncHandlers -= value;
+        }
+
+        public async Task InvokeAsync(T1 arg1, T2 arg2)
+        {
+            _syncHandlers?.Invoke(arg1, arg2);
+
+            if (_asyncHandlers is null)
+            {
+                return;
+            }
+
+            foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T1, T2, Task>>())
+            {
+                await handler(arg1, arg2);
+            }
+        }
+    }
+
+    private readonly EventSlot<double, double> _resize = new();
+    private readonly EventSlot<EventArgs> _scroll = new();
+    private readonly EventSlot<MouseEventArgs> _mouseOver = new();
+    private readonly EventSlot<MouseEventArgs> _mouseOut = new();
+    private readonly EventSlot<MouseEventArgs> _contextMenu = new();
+    private readonly EventSlot<MouseEventArgs> _mouseDown = new();
+    private readonly EventSlot<MouseEventArgs> _mouseUp = new();
+    private readonly EventSlot<MouseEventArgs> _mouseMove = new();
+    private readonly EventSlot<MouseEventArgs> _dbClick = new();
+    private readonly EventSlot<MouseEventArgs> _click = new();
+    private readonly EventSlot<EventArgs> _close = new();
+    private readonly EventSlot<FocusEventArgs> _focus = new();
+    private readonly EventSlot<FocusEventArgs> _blur = new();
+    private readonly EventSlot<TouchEventArgs> _touchStart = new();
+    private readonly EventSlot<TouchEventArgs> _touchMove = new();
+    private readonly EventSlot<TouchEventArgs> _touchEnd = new();
+    private readonly EventSlot<TouchEventArgs> _touchCancel = new();
+    private readonly EventSlot<KeyboardEventArgs> _keyDown = new();
+    private readonly EventSlot<KeyboardEventArgs> _keyPress = new();
+    private readonly EventSlot<KeyboardEventArgs> _keyUp = new();
+
     #region window.onresize
 
     /// <summary>
     /// Current-scope <c>window.resize</c> event.
     /// The first parameter is the viewport width, and the second parameter is the viewport height.
     /// </summary>
-    public event Action<double, double>? OnResize;
+    public event Action<double, double>? OnResize
+    {
+        add => _resize.Sync += value;
+        remove => _resize.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.resize</c> event.
     /// The first parameter is the viewport width, and the second parameter is the viewport height.
     /// </summary>
-    public event Func<double, double, Task>? OnResizeAsync;
+    public event Func<double, double, Task>? OnResizeAsync
+    {
+        add => _resize.Async += value;
+        remove => _resize.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.resize</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowResize(double width, double height)
-    {
-        OnResize?.Invoke(width, height);
-        if (OnResizeAsync != null)
-        {
-            await OnResizeAsync(width, height);
-        }
-    }
+    public Task WindowResize(double width, double height) => _resize.InvokeAsync(width, height);
 
     #endregion
 
@@ -40,26 +129,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.scroll</c> event.
     /// </summary>
-    public event Action<EventArgs>? OnScroll;
+    public event Action<EventArgs>? OnScroll
+    {
+        add => _scroll.Sync += value;
+        remove => _scroll.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.scroll</c> event.
     /// </summary>
-    public event Func<EventArgs, Task>? OnScrollAsync;
+    public event Func<EventArgs, Task>? OnScrollAsync
+    {
+        add => _scroll.Async += value;
+        remove => _scroll.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.scroll</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowScroll(EventArgs e)
-    {
-        OnScroll?.Invoke(e);
-        if (OnScrollAsync != null)
-        {
-            await OnScrollAsync(e);
-        }
-    }
+    public Task WindowScroll(EventArgs e) => _scroll.InvokeAsync(e);
 
     #endregion
 
@@ -68,26 +158,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.mouseover</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnMouseOver;
+    public event Action<MouseEventArgs>? OnMouseOver
+    {
+        add => _mouseOver.Sync += value;
+        remove => _mouseOver.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.mouseover</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnMouseOverAsync;
+    public event Func<MouseEventArgs, Task>? OnMouseOverAsync
+    {
+        add => _mouseOver.Async += value;
+        remove => _mouseOver.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.mouseover</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowMouseOver(MouseEventArgs e)
-    {
-        OnMouseOver?.Invoke(e);
-        if (OnMouseOverAsync != null)
-        {
-            await OnMouseOverAsync(e);
-        }
-    }
+    public Task WindowMouseOver(MouseEventArgs e) => _mouseOver.InvokeAsync(e);
 
     #endregion
 
@@ -96,26 +187,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.mouseout</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnMouseOut;
+    public event Action<MouseEventArgs>? OnMouseOut
+    {
+        add => _mouseOut.Sync += value;
+        remove => _mouseOut.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.mouseout</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnMouseOutAsync;
+    public event Func<MouseEventArgs, Task>? OnMouseOutAsync
+    {
+        add => _mouseOut.Async += value;
+        remove => _mouseOut.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.mouseout</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowMouseOut(MouseEventArgs e)
-    {
-        OnMouseOut?.Invoke(e);
-        if (OnMouseOutAsync != null)
-        {
-            await OnMouseOutAsync(e);
-        }
-    }
+    public Task WindowMouseOut(MouseEventArgs e) => _mouseOut.InvokeAsync(e);
 
     #endregion
 
@@ -124,26 +216,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.contextmenu</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnContextMenu;
+    public event Action<MouseEventArgs>? OnContextMenu
+    {
+        add => _contextMenu.Sync += value;
+        remove => _contextMenu.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.contextmenu</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnContextMenuAsync;
+    public event Func<MouseEventArgs, Task>? OnContextMenuAsync
+    {
+        add => _contextMenu.Async += value;
+        remove => _contextMenu.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.contextmenu</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowContextMenu(MouseEventArgs e)
-    {
-        OnContextMenu?.Invoke(e);
-        if (OnContextMenuAsync != null)
-        {
-            await OnContextMenuAsync(e);
-        }
-    }
+    public Task WindowContextMenu(MouseEventArgs e) => _contextMenu.InvokeAsync(e);
 
     #endregion
 
@@ -152,26 +245,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.mousedown</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnMouseDown;
+    public event Action<MouseEventArgs>? OnMouseDown
+    {
+        add => _mouseDown.Sync += value;
+        remove => _mouseDown.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.mousedown</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnMouseDownAsync;
+    public event Func<MouseEventArgs, Task>? OnMouseDownAsync
+    {
+        add => _mouseDown.Async += value;
+        remove => _mouseDown.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.mousedown</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowMouseDown(MouseEventArgs e)
-    {
-        OnMouseDown?.Invoke(e);
-        if (OnMouseDownAsync != null)
-        {
-            await OnMouseDownAsync(e);
-        }
-    }
+    public Task WindowMouseDown(MouseEventArgs e) => _mouseDown.InvokeAsync(e);
 
     #endregion
 
@@ -180,26 +274,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.mouseup</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnMouseUp;
+    public event Action<MouseEventArgs>? OnMouseUp
+    {
+        add => _mouseUp.Sync += value;
+        remove => _mouseUp.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.mouseup</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnMouseUpAsync;
+    public event Func<MouseEventArgs, Task>? OnMouseUpAsync
+    {
+        add => _mouseUp.Async += value;
+        remove => _mouseUp.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.mouseup</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowMouseUp(MouseEventArgs e)
-    {
-        OnMouseUp?.Invoke(e);
-        if (OnMouseUpAsync != null)
-        {
-            await OnMouseUpAsync(e);
-        }
-    }
+    public Task WindowMouseUp(MouseEventArgs e) => _mouseUp.InvokeAsync(e);
 
     #endregion
 
@@ -208,26 +303,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.mousemove</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnMouseMove;
+    public event Action<MouseEventArgs>? OnMouseMove
+    {
+        add => _mouseMove.Sync += value;
+        remove => _mouseMove.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.mousemove</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnMouseMoveAsync;
+    public event Func<MouseEventArgs, Task>? OnMouseMoveAsync
+    {
+        add => _mouseMove.Async += value;
+        remove => _mouseMove.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.mousemove</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowMouseMove(MouseEventArgs e)
-    {
-        OnMouseMove?.Invoke(e);
-        if (OnMouseMoveAsync != null)
-        {
-            await OnMouseMoveAsync(e);
-        }
-    }
+    public Task WindowMouseMove(MouseEventArgs e) => _mouseMove.InvokeAsync(e);
 
     #endregion
 
@@ -236,26 +332,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope double-click event synthesized from window click events.
     /// </summary>
-    public event Action<MouseEventArgs>? OnDbClick;
+    public event Action<MouseEventArgs>? OnDbClick
+    {
+        add => _dbClick.Sync += value;
+        remove => _dbClick.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous double-click event synthesized from window click events.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnDbClickAsync;
+    public event Func<MouseEventArgs, Task>? OnDbClickAsync
+    {
+        add => _dbClick.Async += value;
+        remove => _dbClick.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a synthesized double-click event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowDbClick(MouseEventArgs e)
-    {
-        OnDbClick?.Invoke(e);
-        if (OnDbClickAsync != null)
-        {
-            await OnDbClickAsync(e);
-        }
-    }
+    public Task WindowDbClick(MouseEventArgs e) => _dbClick.InvokeAsync(e);
 
     #endregion
 
@@ -264,54 +361,56 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.click</c> event.
     /// </summary>
-    public event Action<MouseEventArgs>? OnClick;
+    public event Action<MouseEventArgs>? OnClick
+    {
+        add => _click.Sync += value;
+        remove => _click.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.click</c> event.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnClickAsync;
+    public event Func<MouseEventArgs, Task>? OnClickAsync
+    {
+        add => _click.Async += value;
+        remove => _click.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.click</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowClick(MouseEventArgs e)
-    {
-        OnClick?.Invoke(e);
-        if (OnClickAsync != null)
-        {
-            await OnClickAsync(e);
-        }
-    }
+    public Task WindowClick(MouseEventArgs e) => _click.InvokeAsync(e);
 
     #endregion
 
     #region OnClose
 
     /// <summary>
-    /// Current-scope window close-like event forwarded from JavaScript.
+    /// Current-scope close-like notification forwarded from <c>window.beforeunload</c> or <c>window.pagehide</c>.
     /// </summary>
-    public event Action<EventArgs>? OnClose;
+    public event Action<EventArgs>? OnClose
+    {
+        add => _close.Sync += value;
+        remove => _close.Sync -= value;
+    }
 
     /// <summary>
-    /// Current-scope asynchronous window close-like event forwarded from JavaScript.
+    /// Current-scope asynchronous close-like notification forwarded from <c>window.beforeunload</c> or <c>window.pagehide</c>.
     /// </summary>
-    public event Func<EventArgs, Task>? OnCloseAsync;
+    public event Func<EventArgs, Task>? OnCloseAsync
+    {
+        add => _close.Async += value;
+        remove => _close.Async -= value;
+    }
 
     /// <summary>
-    /// Invoked from JavaScript when the current scope receives a close-like event.
+    /// Invoked from JavaScript when the current scope receives a close-like page lifecycle event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowClose(EventArgs e)
-    {
-        OnClose?.Invoke(e);
-        if (OnCloseAsync != null)
-        {
-            await OnCloseAsync(e);
-        }
-    }
+    public Task WindowClose(EventArgs e) => _close.InvokeAsync(e);
 
     #endregion
 
@@ -320,26 +419,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.focus</c> event.
     /// </summary>
-    public event Action<FocusEventArgs>? OnFocus;
+    public event Action<FocusEventArgs>? OnFocus
+    {
+        add => _focus.Sync += value;
+        remove => _focus.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.focus</c> event.
     /// </summary>
-    public event Func<FocusEventArgs, Task>? OnFocusAsync;
+    public event Func<FocusEventArgs, Task>? OnFocusAsync
+    {
+        add => _focus.Async += value;
+        remove => _focus.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.focus</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowFocus(FocusEventArgs e)
-    {
-        OnFocus?.Invoke(e);
-        if (OnFocusAsync != null)
-        {
-            await OnFocusAsync(e);
-        }
-    }
+    public Task WindowFocus(FocusEventArgs e) => _focus.InvokeAsync(e);
 
     #endregion
 
@@ -348,26 +448,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.blur</c> event.
     /// </summary>
-    public event Action<FocusEventArgs>? OnBlur;
+    public event Action<FocusEventArgs>? OnBlur
+    {
+        add => _blur.Sync += value;
+        remove => _blur.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.blur</c> event.
     /// </summary>
-    public event Func<FocusEventArgs, Task>? OnBlurAsync;
+    public event Func<FocusEventArgs, Task>? OnBlurAsync
+    {
+        add => _blur.Async += value;
+        remove => _blur.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.blur</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowBlur(FocusEventArgs e)
-    {
-        OnBlur?.Invoke(e);
-        if (OnBlurAsync != null)
-        {
-            await OnBlurAsync(e);
-        }
-    }
+    public Task WindowBlur(FocusEventArgs e) => _blur.InvokeAsync(e);
 
     #endregion
 
@@ -376,26 +477,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.touchstart</c> event.
     /// </summary>
-    public event Action<TouchEventArgs>? OnTouchStart;
+    public event Action<TouchEventArgs>? OnTouchStart
+    {
+        add => _touchStart.Sync += value;
+        remove => _touchStart.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.touchstart</c> event.
     /// </summary>
-    public event Func<TouchEventArgs, Task>? OnTouchStartAsync;
+    public event Func<TouchEventArgs, Task>? OnTouchStartAsync
+    {
+        add => _touchStart.Async += value;
+        remove => _touchStart.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.touchstart</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowTouchStart(TouchEventArgs e)
-    {
-        OnTouchStart?.Invoke(e);
-        if (OnTouchStartAsync != null)
-        {
-            await OnTouchStartAsync(e);
-        }
-    }
+    public Task WindowTouchStart(TouchEventArgs e) => _touchStart.InvokeAsync(e);
 
     #endregion
 
@@ -404,26 +506,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.touchmove</c> event.
     /// </summary>
-    public event Action<TouchEventArgs>? OnTouchMove;
+    public event Action<TouchEventArgs>? OnTouchMove
+    {
+        add => _touchMove.Sync += value;
+        remove => _touchMove.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.touchmove</c> event.
     /// </summary>
-    public event Func<TouchEventArgs, Task>? OnTouchMoveAsync;
+    public event Func<TouchEventArgs, Task>? OnTouchMoveAsync
+    {
+        add => _touchMove.Async += value;
+        remove => _touchMove.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.touchmove</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowTouchMove(TouchEventArgs e)
-    {
-        OnTouchMove?.Invoke(e);
-        if (OnTouchMoveAsync != null)
-        {
-            await OnTouchMoveAsync(e);
-        }
-    }
+    public Task WindowTouchMove(TouchEventArgs e) => _touchMove.InvokeAsync(e);
 
     #endregion
 
@@ -432,26 +535,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.touchend</c> event.
     /// </summary>
-    public event Action<TouchEventArgs>? OnTouchEnd;
+    public event Action<TouchEventArgs>? OnTouchEnd
+    {
+        add => _touchEnd.Sync += value;
+        remove => _touchEnd.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.touchend</c> event.
     /// </summary>
-    public event Func<TouchEventArgs, Task>? OnTouchEndAsync;
+    public event Func<TouchEventArgs, Task>? OnTouchEndAsync
+    {
+        add => _touchEnd.Async += value;
+        remove => _touchEnd.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.touchend</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowTouchEnd(TouchEventArgs e)
-    {
-        OnTouchEnd?.Invoke(e);
-        if (OnTouchEndAsync != null)
-        {
-            await OnTouchEndAsync(e);
-        }
-    }
+    public Task WindowTouchEnd(TouchEventArgs e) => _touchEnd.InvokeAsync(e);
 
     #endregion
 
@@ -460,26 +564,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.touchcancel</c> event.
     /// </summary>
-    public event Action<TouchEventArgs>? OnTouchCancel;
+    public event Action<TouchEventArgs>? OnTouchCancel
+    {
+        add => _touchCancel.Sync += value;
+        remove => _touchCancel.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.touchcancel</c> event.
     /// </summary>
-    public event Func<TouchEventArgs, Task>? OnTouchCancelAsync;
+    public event Func<TouchEventArgs, Task>? OnTouchCancelAsync
+    {
+        add => _touchCancel.Async += value;
+        remove => _touchCancel.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.touchcancel</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowTouchCancel(TouchEventArgs e)
-    {
-        OnTouchCancel?.Invoke(e);
-        if (OnTouchCancelAsync != null)
-        {
-            await OnTouchCancelAsync(e);
-        }
-    }
+    public Task WindowTouchCancel(TouchEventArgs e) => _touchCancel.InvokeAsync(e);
 
     #endregion
 
@@ -488,26 +593,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.keydown</c> event.
     /// </summary>
-    public event Action<KeyboardEventArgs>? OnKeyDown;
+    public event Action<KeyboardEventArgs>? OnKeyDown
+    {
+        add => _keyDown.Sync += value;
+        remove => _keyDown.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.keydown</c> event.
     /// </summary>
-    public event Func<KeyboardEventArgs, Task>? OnKeyDownAsync;
+    public event Func<KeyboardEventArgs, Task>? OnKeyDownAsync
+    {
+        add => _keyDown.Async += value;
+        remove => _keyDown.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.keydown</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowKeyDown(KeyboardEventArgs e)
-    {
-        OnKeyDown?.Invoke(e);
-        if (OnKeyDownAsync != null)
-        {
-            await OnKeyDownAsync(e);
-        }
-    }
+    public Task WindowKeyDown(KeyboardEventArgs e) => _keyDown.InvokeAsync(e);
 
     #endregion
 
@@ -516,26 +622,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.keypress</c> event.
     /// </summary>
-    public event Action<KeyboardEventArgs>? OnKeyPress;
+    public event Action<KeyboardEventArgs>? OnKeyPress
+    {
+        add => _keyPress.Sync += value;
+        remove => _keyPress.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.keypress</c> event.
     /// </summary>
-    public event Func<KeyboardEventArgs, Task>? OnKeyPressAsync;
+    public event Func<KeyboardEventArgs, Task>? OnKeyPressAsync
+    {
+        add => _keyPress.Async += value;
+        remove => _keyPress.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.keypress</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowKeyPress(KeyboardEventArgs e)
-    {
-        OnKeyPress?.Invoke(e);
-        if (OnKeyPressAsync != null)
-        {
-            await OnKeyPressAsync(e);
-        }
-    }
+    public Task WindowKeyPress(KeyboardEventArgs e) => _keyPress.InvokeAsync(e);
 
     #endregion
 
@@ -544,26 +651,27 @@ public class BqEvents
     /// <summary>
     /// Current-scope <c>window.keyup</c> event.
     /// </summary>
-    public event Action<KeyboardEventArgs>? OnKeyUp;
+    public event Action<KeyboardEventArgs>? OnKeyUp
+    {
+        add => _keyUp.Sync += value;
+        remove => _keyUp.Sync -= value;
+    }
 
     /// <summary>
     /// Current-scope asynchronous <c>window.keyup</c> event.
     /// </summary>
-    public event Func<KeyboardEventArgs, Task>? OnKeyUpAsync;
+    public event Func<KeyboardEventArgs, Task>? OnKeyUpAsync
+    {
+        add => _keyUp.Async += value;
+        remove => _keyUp.Async -= value;
+    }
 
     /// <summary>
     /// Invoked from JavaScript when the current scope receives a <c>window.keyup</c> event.
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public async Task WindowKeyUp(KeyboardEventArgs e)
-    {
-        OnKeyUp?.Invoke(e);
-        if (OnKeyUpAsync != null)
-        {
-            await OnKeyUpAsync(e);
-        }
-    }
+    public Task WindowKeyUp(KeyboardEventArgs e) => _keyUp.InvokeAsync(e);
 
     #endregion
 }

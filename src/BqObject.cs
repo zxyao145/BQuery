@@ -5,17 +5,18 @@ public class BqObject : IAsyncDisposable
     private Lazy<Task<IJSObjectReference>>? moduleTask;
     private IJSObjectReference? _module;
     private readonly DotNetObjectReference<BqEvents> _eventsReference;
+    private readonly string _listenerId = Guid.NewGuid().ToString("N");
     private readonly HashSet<WindowEvent> _registeredEvents = [];
     private readonly IJSRuntime _jsRuntime;
     private bool _disposed;
 
-    public BqObject(IJSRuntime jsRuntime, BqViewport viewport, BqEvents events)
+    public BqObject(IJSRuntime jsRuntime, BqEvents events)
     {
         _jsRuntime = jsRuntime;
         moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
            "import", JsModuleConstants.MJS).AsTask());
 
-        Viewport = viewport;
+        Viewport = new BqViewport(GetModuleAsync);
         Events = events;
         _eventsReference = DotNetObjectReference.Create(events);
     }
@@ -44,11 +45,12 @@ public class BqObject : IAsyncDisposable
     /// </summary>
     public BqEvents Events { get; }
 
-    public async Task addWindowEventsListener(params WindowEvent[] events)
+
+    public async Task AddWindowEventListeners(params WindowEvent[] windowEvents)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var eventList = events
+        var eventList = windowEvents
             .Where(static e => !string.IsNullOrWhiteSpace(e.Name))
             .Distinct()
             .ToArray();
@@ -67,17 +69,19 @@ public class BqObject : IAsyncDisposable
             .InvokeVoidAsync(
                 JsModuleConstants.AddWindowEventsListener,
                 eventList,
+                _listenerId,
                 _eventsReference);
     }
 
-    public async Task RemoveWindowEventsListener(params WindowEvent[] events)
+
+    public async Task RemoveWindowEventListeners(params WindowEvent[] windowEvents)
     {
         if (_disposed)
         {
             return;
         }
 
-        var eventList = events
+        var eventList = windowEvents
             .Where(static e => !string.IsNullOrWhiteSpace(e.Name))
             .Distinct()
             .ToArray();
@@ -96,6 +100,7 @@ public class BqObject : IAsyncDisposable
             .InvokeVoidAsync(
                 JsModuleConstants.RemoveWindowEventsListener,
                 eventList,
+                _listenerId,
                 _eventsReference);
     }
 
@@ -143,11 +148,11 @@ public class BqObject : IAsyncDisposable
             await _module.InvokeVoidAsync(
                 JsModuleConstants.RemoveWindowEventsListener,
                 _registeredEvents.ToArray(),
+                _listenerId,
                 _eventsReference);
         }
 
         _registeredEvents.Clear();
-        _eventsReference.Dispose();
 
         if (_module != null)
         {
@@ -161,6 +166,8 @@ public class BqObject : IAsyncDisposable
             await module.DisposeAsync();
             moduleTask = null;
         }
+
+        _eventsReference.Dispose();
     }
 
     #endregion

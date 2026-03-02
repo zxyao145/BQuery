@@ -1,29 +1,44 @@
 ﻿namespace BQuery;
 
-public class BqViewport : IAsyncDisposable
+public class BqViewport
 {
-    private readonly IJSRuntime _js;
+    private readonly Func<ValueTask<IJSObjectReference>> _moduleAccessor;
+    private static readonly string GetWidthMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetWidth);
+    private static readonly string GetHeightMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetHeight);
+    private static readonly string GetWidthAndHeightMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetWidthAndHeight);
+    private static readonly string GetScrollWidthMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetScrollWidth);
+    private static readonly string GetScrollHeightMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetScrollHeight);
+    private static readonly string GetScrollWidthAndHeightMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetScrollWidthAndHeight);
+    private static readonly string GetScrollLeftMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetScrollLeft);
+    private static readonly string GetScrollTopMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetScrollTop);
+    private static readonly string GetScrollLeftAndTopMethod = JsModuleConstants.GetMethod(
+        JsModuleConstants.Viewport.ModuleName,
+        JsModuleConstants.Viewport.GetScrollLeftAndTop);
 
-
-    private Lazy<Task<IJSObjectReference>>? moduleTask;
-    private IJSObjectReference? _module;
-
-    public BqViewport(IJSRuntime jsRuntime)
+    internal BqViewport(Func<ValueTask<IJSObjectReference>> moduleAccessor)
     {
-        this._js = jsRuntime;
-        moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-           "import", JsModuleConstants.MJS).AsTask());
+        _moduleAccessor = moduleAccessor;
     }
 
-    private async ValueTask<IJSObjectReference> GetModuleAsync()
+    private ValueTask<IJSObjectReference> GetModuleAsync()
     {
-        if (_module != null)
-        {
-            return _module;
-        }
-        var v = await moduleTask!.Value;
-        _module = await v.InvokeAsync<IJSObjectReference>("getViewport");
-        return _module;
+        return _moduleAccessor();
     }
 
 
@@ -35,7 +50,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns></returns>
     public async Task<double> GetWidthAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetWidth);
+        return await (await GetModuleAsync()).InvokeAsync<double>(GetWidthMethod);
     }
 
     /// <summary>
@@ -44,7 +59,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns></returns>
     public async Task<double> GetHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetHeight);
+        return await (await GetModuleAsync()).InvokeAsync<double>(GetHeightMethod);
     }
 
     /// <summary>
@@ -53,7 +68,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns>double array: [width,height]</returns>
     public async Task<double[]> GetWidthAndHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetWidthAndHeight);
+        return await (await GetModuleAsync()).InvokeAsync<double[]>(GetWidthAndHeightMethod);
     }
 
     #endregion
@@ -66,7 +81,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns></returns>
     public async Task<double> GetScrollWidthAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollWidth);
+        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollWidthMethod);
     }
 
     /// <summary>
@@ -75,7 +90,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns></returns>
     public async Task<double> GetScrollHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollHeight);
+        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollHeightMethod);
     }
 
     /// <summary>
@@ -84,7 +99,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns>double array: [width,height]</returns>
     public async Task<double[]> GetScrollWidthAndHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetScrollWidthAndHeight);
+        return await (await GetModuleAsync()).InvokeAsync<double[]>(GetScrollWidthAndHeightMethod);
     }
 
     #endregion
@@ -95,7 +110,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns></returns>
     public async Task<double> GetScrollLeftAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollLeft);
+        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollLeftMethod);
     }
 
     /// <summary>
@@ -104,7 +119,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns></returns>
     public async Task<double> GetScrollTopAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(JsModuleConstants.Viewport.GetScrollTop);
+        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollTopMethod);
     }
 
     /// <summary>
@@ -113,25 +128,7 @@ public class BqViewport : IAsyncDisposable
     /// <returns>double array: [left, top]</returns>
     public async Task<double[]> GetScrollLeftAndTopAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetScrollLeftAndTop);
+        return await (await GetModuleAsync()).InvokeAsync<double[]>(GetScrollLeftAndTopMethod);
     }
 
-    /// <summary>
-    /// Disposes the JavaScript module reference.
-    /// </summary>
-    public async ValueTask DisposeAsync()
-    {
-        if (_module != null)
-        {
-            await _module.DisposeAsync();
-            _module = null;
-        }
-
-        if (moduleTask != null && moduleTask.IsValueCreated)
-        {
-            var module = await moduleTask.Value;
-            await module.DisposeAsync();
-            moduleTask = null;
-        }
-    }
 }

@@ -30,7 +30,9 @@ An extended library of interaction between blazor and js. And The name mimics jQ
 <script src="_content/BQuery/bQuery.min.js"></script>
 ```
 
-### 2.1.2.Modify the `Main ` method in Program.cs 
+### 2.1.2.Optional: keep `UseBQuery()` for backward compatibility
+
+`UseBQuery()` no longer performs startup initialization. You can keep it in existing apps, but new code can call `RunAsync()` directly.
 
 change 
 
@@ -62,19 +64,13 @@ See "**Sample\BQuery.Sample.Wasm**" and "**Sample\BQuery.Sample.Common**" for de
 
 ### 2.2.1Add js to Pages/_host.html
 
-In server side, you must manually initialize bquery as follows:
+In server side, load the script as follows:
 
 ```js
 <script src="_framework/blazor.server.js" autostart="false"></script>
 <script src="_content/BQuery/bQuery.min.js"></script>
 <script>
-    function start() {
-        Blazor.start({})
-            .then(() => {
-                window.bqInit();
-            });
-    }
-    start();
+    Blazor.start({});
 </script>
 ```
 
@@ -82,29 +78,17 @@ In server side, you must manually initialize bquery as follows:
 
 
 
-### 2.2.2.Modify `App.razor`
+### 2.2.2.Register services
 
-To get the `IJSRuntime`  in the context of mounting DOM, you must add or modify the partial class `App` file **App.razor.cs**, and inject `IJSRuntime` as follows:
+Register BQuery services in `Startup.ConfigureServices` or `Program.cs`:
 
-```
-public partial class App
-{
-    [Inject]
-    public IJSRuntime JsRuntime { get; set; }
-
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            Bq.JsRuntime = JsRuntime;
-            base.OnAfterRender(firstRender);
-        }
-    }
-}
+```csharp
+services.AddBQuery();
 ```
 
-### 2.2.3.Modify the `Main ` method in Program.cs 
+### 2.2.3.Optional: keep `UseBQuery()` for backward compatibility
+
+`UseBQuery()` no longer performs startup initialization. You can keep it in existing apps, but new code can call `Run()` directly.
 
 change 
 
@@ -146,7 +130,9 @@ Window on scroll
 
 - TS [TS API](./TS-API.md)
 
-## 4.1.`Bq Static member (not contains extension methods)`
+## 4.1.`BqObject`
+
+Resolve `BqObject` from DI and use its instance members:
 
 | **name**                           | describe                    | return    |
 | ---------------------------------- | --------------------------- | --------- |
@@ -154,11 +140,11 @@ Window on scroll
 | `Viewport`                         | See **Bq.Viewport.*** below | --        |
 | `Events`                           | See **Bq.Events.*** below   | --        |
 
-## 4.2.`Bq.Viewport.*`
+## 4.2.`BqObject.Viewport.*`
 
 | name                                            | describe                             | return          |
 | ----------------------------------------------- | ------------------------------------ | --------------- |
-| `Task<double> Bq.Viewport.GetWidthAsync()`      | get viewport width                   | width           |
+| `Task<double> bq.Viewport.GetWidthAsync()`      | get viewport width                   | width           |
 | `Task<double> GetHeightAsync()`                 | get viewport height                  | height          |
 | `Task<double[]> GetWidthAndHeightAsync()`       | get viewport width and height        | [width, height] |
 | `Task<double> GetScrollWidthAsync()`            | get viewport scroll width            | width           |
@@ -188,7 +174,7 @@ note: all the method not show the first patameter:  *this ElementReference eleme
 | ~~`Task FocusAsync()`~~   | focus element                       | Blazor already has a native implementation       | --                 |
 | `Task BindDragAsync(DragOptions options = null)`             | Allow element drag                  | DragOptions                                      | --                 |
 
-## 4.4.`Bq.Events`.*
+## 4.4.`BqObject.Events`.*
 
 | name                         | describe                     | parameters        |
 | ---------------------------- | ---------------------------- | ----------------- |

@@ -6,13 +6,13 @@ This document is derived from the public C# surface under `BQuery/*.cs`.
 
 `BQuery` is a Blazor helper library that exposes:
 
-- `Bq` static helpers for browser and element operations
-- `Bq.Viewport` for viewport measurements
-- `Bq.Events` for window-level browser events
-- `DomHelper` for DOM attribute, class, and style mutation
-- `UseBQuery(...)` startup extensions for WebAssembly and Server hosting
+- `BqObject` for browser operations
+- `BqObject.Viewport` for viewport measurements
+- `BqObject.Events` for window-level browser events
+- `ElementReference` extension methods for DOM mutation and measurement
+- `UseBQuery(...)` compatibility extensions for existing startup code
 
-Most APIs are asynchronous and optionally accept an `IJSRuntime`. When `jsRuntime` is omitted, BQuery resolves it from its initialization path.
+Most APIs are asynchronous. `BqObject` and related services are resolved from DI.
 
 ## Setup
 
@@ -26,8 +26,8 @@ Methods:
 
 | Member | Description |
 | --- | --- |
-| `WebAssemblyHost UseBQuery(this WebAssemblyHost webAssemblyHost)` | Initializes BQuery for Blazor WebAssembly. |
-| `IHost UseBQuery(this IHost webAssemblyHost)` | Initializes BQuery for Blazor Server hosting. |
+| `WebAssemblyHost UseBQuery(this WebAssemblyHost webAssemblyHost)` | Compatibility no-op for existing startup code. |
+| `IHost UseBQuery(this IHost webAssemblyHost)` | Compatibility no-op for existing startup code. |
 
 Typical usage:
 
@@ -37,22 +37,20 @@ await builder.Build()
     .RunAsync();
 ```
 
-## `Bq`
+## `BqObject`
 
 ```csharp
-public static class Bq
+public class BqObject
 ```
 
 Properties:
 
 | Member | Type | Description |
 | --- | --- | --- |
-| `IsServerSide` | `bool` | Indicates whether BQuery was initialized in server mode. |
-| `JsRuntime` | `IJSRuntime` | Explicit runtime slot used by server-side initialization scenarios. |
-| `Viewport` | `BqViewport` | Singleton viewport helper. |
-| `Events` | `BqEvents` | Singleton window event hub. |
+| `Viewport` | `BqViewport` | Viewport helper backed by the current `BqObject` JS module. |
+| `Events` | `BqEvents` | Window event hub for the current DI scope. |
 
-Static methods:
+Methods:
 
 | Member | Returns | Description |
 | --- | --- | --- |
@@ -83,7 +81,7 @@ All members below are declared as extension methods on `ElementReference`.
 public class BqViewport
 ```
 
-Access this instance through `Bq.Viewport`.
+Access this instance through `BqObject.Viewport`.
 
 Methods:
 
@@ -105,7 +103,7 @@ Methods:
 public class BqEvents
 ```
 
-Access this instance through `Bq.Events`.
+Access this instance through `BqObject.Events`.
 
 Each browser event is exposed in two forms:
 
@@ -282,4 +280,4 @@ Examples:
 
 - All measurement and DOM APIs are async because they execute through JS interop.
 - The library exposes both consumer-facing APIs (`Bq`, `BqViewport`, `BqEvents`, `DomHelper`) and public interop plumbing (`BqInterop`, `JsInteropConstants`).
-- `Bq.Events` and `Bq.Viewport` are initialized by `UseBQuery(...)`.
+- `UseBQuery(...)` is retained only for backward compatibility and does not perform initialization.

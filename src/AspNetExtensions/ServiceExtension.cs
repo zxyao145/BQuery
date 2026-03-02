@@ -14,7 +14,6 @@ public static class ServiceExtension
     {
         services.AddScoped<BqEvents>();
         services.AddScoped<BqObject>();
-        services.AddScoped<BqViewport>();
         return services;
     }
 }
