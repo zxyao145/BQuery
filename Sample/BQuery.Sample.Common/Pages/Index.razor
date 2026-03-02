@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject IJSRuntime jSRuntime
 @inject BqObject bq
+@implements IAsyncDisposable
 
 <div class="m-3 ">
     UserAgent: @userAgent;
@@ -124,9 +125,9 @@
             );
 
             // Bq.Events.OnResize += OnWindowResize;
-            Bq.Events.OnResizeAsync += OnWindowResizeAsync;
-            Bq.Events.OnScrollAsync += OnWindowScrollAsync;
-            Bq.Events.OnMouseMoveAsync += OnWindowMouseMove;
+            bq.Events.OnResizeAsync += OnWindowResizeAsync;
+            bq.Events.OnScrollAsync += OnWindowScrollAsync;
+            bq.Events.OnMouseMoveAsync += OnWindowMouseMove;
 
             vpPos = await elm2.GetPositionInViewportAsync();
 
@@ -170,4 +171,11 @@
         await InvokeAsync(() => StateHasChanged());
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        if (bq is not null)
+        {
+            await bq.DisposeAsync();
+        }
+    }
 }

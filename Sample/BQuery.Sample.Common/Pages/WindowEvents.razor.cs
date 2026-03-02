@@ -7,21 +7,24 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace BQuery.Sample.Common.Pages
 {
-    public partial class WindowEvents
+    public partial class WindowEvents: IAsyncDisposable
     {
+        [Inject]
+        private BqObject bq {  get; set; }
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
-            {
-                Bq.Events.OnMouseMoveAsync += Events_OnMouseMove;
-                Bq.Events.OnClickAsync += Events_OnClick;
-                Bq.Events.OnDbClickAsync += Events_OnDbClick;
-                Bq.Events.OnMouseDownAsync += Events_OnMouseDown;
-                Bq.Events.OnMouseUpAsync += Events_OnMouseUp;
-                Bq.Events.OnKeyDownAsync += Events_OnKeyDown;
-                Bq.Events.OnBlurAsync += Events_OnBlur;
-                Bq.Events.OnFocusAsync += Events_OnFocus;
-                Bq.Events.OnTouchStartAsync += Events_OnTouchStart;
+            { 
+              bq.Events.OnMouseMoveAsync += Events_OnMouseMove;
+              bq.Events.OnClickAsync += Events_OnClick;
+              bq.Events.OnDbClickAsync += Events_OnDbClick;
+              bq.Events.OnMouseDownAsync += Events_OnMouseDown;
+              bq.Events.OnMouseUpAsync += Events_OnMouseUp;
+              bq.Events.OnKeyDownAsync += Events_OnKeyDown;
+              bq.Events.OnBlurAsync += Events_OnBlur;
+              bq.Events.OnFocusAsync += Events_OnFocus;
+              bq.Events.OnTouchStartAsync += Events_OnTouchStart;
             }
             await base.OnAfterRenderAsync(firstRender);
         }
@@ -113,6 +116,12 @@ namespace BQuery.Sample.Common.Pages
             await InvokeAsync(StateHasChanged);
         }
 
-
+        public async ValueTask DisposeAsync()
+        {
+            if(bq != null) 
+            {
+                await bq.DisposeAsync();
+            }
+        }
     }
 }

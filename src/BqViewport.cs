@@ -1,12 +1,12 @@
 ﻿namespace BQuery;
 
-public class BqViewport
+public class BqViewport : IAsyncDisposable
 {
     private readonly IJSRuntime _js;
 
 
-    private Lazy<Task<IJSObjectReference>> moduleTask;
-    private IJSObjectReference _module;
+    private Lazy<Task<IJSObjectReference>>? moduleTask;
+    private IJSObjectReference? _module;
 
     public BqViewport(IJSRuntime jsRuntime)
     {
@@ -21,7 +21,7 @@ public class BqViewport
         {
             return _module;
         }
-        var v = await moduleTask.Value;
+        var v = await moduleTask!.Value;
         _module = await v.InvokeAsync<IJSObjectReference>("getViewport");
         return _module;
     }
@@ -114,5 +114,24 @@ public class BqViewport
     public async Task<double[]> GetScrollLeftAndTopAsync()
     {
         return await (await GetModuleAsync()).InvokeAsync<double[]>(JsModuleConstants.Viewport.GetScrollLeftAndTop);
+    }
+
+    /// <summary>
+    /// Disposes the JavaScript module reference.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null)
+        {
+            await _module.DisposeAsync();
+            _module = null;
+        }
+
+        if (moduleTask != null && moduleTask.IsValueCreated)
+        {
+            var module = await moduleTask.Value;
+            await module.DisposeAsync();
+            moduleTask = null;
+        }
     }
 }

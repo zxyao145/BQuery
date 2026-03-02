@@ -6,16 +6,29 @@ export interface EventInfo {
   name: string;
 }
 
+type DotNetEventSink = {
+  invokeMethodAsync(methodIdentifier: string, ...args: unknown[]): Promise<unknown>;
+};
+
+type EventHandler = EventListener & {
+  cancel?: () => void;
+};
+
+type ListenerRegistration = {
+  handler: EventHandler;
+  dispose?: () => void;
+};
+
 interface IEventConvertor {
-  toMouseEvent: Function;
-  toFocusEventArgs: Function;
-  toTouchEventArgs: Function;
-  toKeyboardEventArgs: Function;
-  toTouchPoints: Function;
-  toTouchPoint: Function;
+  toMouseEvent: (e: MouseEvent) => object;
+  toFocusEventArgs: (e: FocusEvent) => object;
+  toTouchEventArgs: (e: TouchEvent) => object;
+  toKeyboardEventArgs: (e: KeyboardEvent) => object;
+  toTouchPoints: (pts: TouchList) => object[];
+  toTouchPoint: (pt: Touch) => object;
 }
 
-var eventConvertor: IEventConvertor = {
+const eventConvertor: IEventConvertor = {
   toMouseEvent(e: MouseEvent) {
     return {
       detail: e.detail,
@@ -64,8 +77,8 @@ var eventConvertor: IEventConvertor = {
     };
   },
   toTouchPoints(pts: TouchList) {
-    var touches = [];
-    for (var i = 0; i < pts.length; i++) {
+    const touches = [];
+    for (let i = 0; i < pts.length; i++) {
       touches.push(eventConvertor.toTouchPoint(pts[i]));
     }
     return touches;
@@ -88,132 +101,258 @@ var eventConvertor: IEventConvertor = {
 // window.onresize、window.onscroll
 // window.ontouchstart、window.ontouchmove、 window.ontouchend、window.ontouchcancel
 const defaultThrottleTicks = 50;
-
 const doubleClickTimeInterval = 230;
 
-var lastClick: number | null;
-var clickTimeOut: number;
+const listenersByRef = new Map<string, Map<string, ListenerRegistration>>();
 
-const onClick = (e: PointerEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    var now = new Date().getTime();
-    var isDbClick = lastClick && now - lastClick < doubleClickTimeInterval;
-    if (isDbClick) {
-      window.clearTimeout(clickTimeOut);
-      window.DotNet.invokeMethodAsync("BQuery", "WindowDbClick", obj);
-      lastClick = null;
-    } else {
-      clickTimeOut = window.setTimeout(() => {
-        window.DotNet.invokeMethodAsync("BQuery", "WindowClick", obj);
-      }, doubleClickTimeInterval);
-      lastClick = now;
+const getDotNetRefKey = (dotNetRef: DotNetEventSink) => {
+  const ref = dotNetRef as DotNetEventSink & {
+    _id?: string | number;
+    id?: string | number;
+    dotNetObjectId?: string | number;
+    __dotNetObject?: string | number;
+  };
+
+  const key = ref._id ?? ref.id ?? ref.dotNetObjectId ?? ref.__dotNetObject;
+  if (key === undefined || key === null) {
+    throw new Error("Unable to resolve DotNetObjectReference identity.");
+  }
+
+  return String(key);
+};
+
+const getListenerMap = (dotNetRef: DotNetEventSink) => {
+  const refKey = getDotNetRefKey(dotNetRef);
+  let listenerMap = listenersByRef.get(refKey);
+  if (!listenerMap) {
+    listenerMap = new Map<string, ListenerRegistration>();
+    listenersByRef.set(refKey, listenerMap);
+  }
+  return listenerMap;
+};
+
+const isDisposedDotNetReferenceError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("There is no tracked object with id")
+    || message.includes("dotNetObjectId");
+};
+
+const invokeDotNet = (dotNetRef: DotNetEventSink, methodIdentifier: string, ...args: unknown[]) => {
+  void dotNetRef.invokeMethodAsync(methodIdentifier, ...args).catch((error) => {
+    if (isDisposedDotNetReferenceError(error)) {
+      return;
     }
-};
 
-interface IWindowEventMap {
-  [key: string]: any;
-}
-
-
-const eventMap: IWindowEventMap = {
-  click: onClick,
-  contextmenu: (e: PointerEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowContextMenu", obj);
-  },
-  mousedown: (e: PointerEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowMouseDown", obj);
-  },
-  mouseup: (e: PointerEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowMouseUp", obj);
-  },
-  mouseover: throttle((e: MouseEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowMouseOver", obj);
-  }, defaultThrottleTicks),
-  mouseout: throttle((e: MouseEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowMouseOut", obj);
-  }, defaultThrottleTicks),
-  mousemove: throttle((e: MouseEvent) => {
-    var obj = eventConvertor.toMouseEvent(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowMouseMove", obj);
-  }, defaultThrottleTicks),
-
-  resize: throttle(() => {
-    var vwhArr = Viewport.getWidthAndHeight();
-    window.DotNet.invokeMethodAsync(
-      "BQuery",
-      "WindowResize",
-      vwhArr[0],
-      vwhArr[1],
-    );
-  }, defaultThrottleTicks),
-
-  scroll: throttle((e: Event) => {
-    window.DotNet.invokeMethodAsync("BQuery", "WindowScroll", e);
-  }, defaultThrottleTicks),
-
-  close: (e: Event) => {
-    window.DotNet.invokeMethodAsync("BQuery", "WindowClose", e);
-  },
-
-  focus: (e: FocusEvent) => {
-    var evt = eventConvertor.toFocusEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowFocus", evt);
-  },
-  blur: (e: FocusEvent) => {
-    var evt = eventConvertor.toFocusEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowBlur", evt);
-  },
-
-  touchstart: throttle((e: TouchEvent) => {
-    var evt = eventConvertor.toTouchEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowTouchStart", evt);
-  }, defaultThrottleTicks),
-
-  touchmove: throttle((e: TouchEvent) => {
-    var evt = eventConvertor.toTouchEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowTouchMove", evt);
-  }, defaultThrottleTicks),
-
-  touchend: throttle((e: TouchEvent) => {
-    var evt = eventConvertor.toTouchEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowTouchEnd", evt);
-  }, defaultThrottleTicks),
-  touchcancel: throttle((e: TouchEvent) => {
-    var evt = eventConvertor.toTouchEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowTouchCancel", evt);
-  }, defaultThrottleTicks),
-
-  keydown: (e: KeyboardEvent) => {
-    var evt = eventConvertor.toKeyboardEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowKeyDown", evt);
-  },
-  keypress: (e: KeyboardEvent) => {
-    var evt = eventConvertor.toKeyboardEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowKeyPress", evt);
-  },
-  keyup: (e: KeyboardEvent) => {
-    var evt = eventConvertor.toKeyboardEventArgs(e);
-    window.DotNet.invokeMethodAsync("BQuery", "WindowKeyUp", evt);
-  },
-};
-
-
-const bindAllWindowEvent = () => {
-  Object.keys(eventMap).forEach((eventName) => {
-    window.addEventListener(eventName, eventMap[eventName]);
+    console.error(`failed to invoke '${methodIdentifier}'`, error);
   });
 };
 
-const bindWindowEvents = (events: Array<EventInfo>) => {
-  console.debug("bindWindowEvents", events);
+const createClickHandler = (dotNetRef: DotNetEventSink): ListenerRegistration => {
+  let lastClick: number | null = null;
+  let clickTimeout: number | null = null;
+  let disposed = false;
+
+  const handler: EventHandler = (e: Event) => {
+    if (disposed) {
+      return;
+    }
+
+    const evt = e as PointerEvent;
+    const obj = eventConvertor.toMouseEvent(evt);
+    const now = Date.now();
+    const isDbClick = lastClick !== null && now - lastClick < doubleClickTimeInterval;
+
+    if (isDbClick) {
+      if (clickTimeout !== null) {
+        window.clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+      invokeDotNet(dotNetRef, "WindowDbClick", obj);
+      lastClick = null;
+      return;
+    }
+
+    clickTimeout = window.setTimeout(() => {
+      if (disposed) {
+        return;
+      }
+
+      invokeDotNet(dotNetRef, "WindowClick", obj);
+      clickTimeout = null;
+    }, doubleClickTimeInterval);
+    lastClick = now;
+  };
+
+  return {
+    handler,
+    dispose: () => {
+      disposed = true;
+      lastClick = null;
+      if (clickTimeout !== null) {
+        window.clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+    },
+  };
+};
+
+interface IWindowEventMap {
+  [key: string]: (dotNetRef: DotNetEventSink) => ListenerRegistration;
+}
+
+const eventMap: IWindowEventMap = {
+  click: createClickHandler,
+  contextmenu: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const obj = eventConvertor.toMouseEvent(e as PointerEvent);
+    invokeDotNet(dotNetRef, "WindowContextMenu", obj);
+  },
+  }),
+  mousedown: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const obj = eventConvertor.toMouseEvent(e as PointerEvent);
+    invokeDotNet(dotNetRef, "WindowMouseDown", obj);
+  },
+  }),
+  mouseup: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const obj = eventConvertor.toMouseEvent(e as PointerEvent);
+    invokeDotNet(dotNetRef, "WindowMouseUp", obj);
+  },
+  }),
+  mouseover: (dotNetRef) => ({
+    handler: throttle((e: MouseEvent) => {
+    const obj = eventConvertor.toMouseEvent(e);
+    invokeDotNet(dotNetRef, "WindowMouseOver", obj);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  mouseout: (dotNetRef) => ({
+    handler: throttle((e: MouseEvent) => {
+    const obj = eventConvertor.toMouseEvent(e);
+    invokeDotNet(dotNetRef, "WindowMouseOut", obj);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  mousemove: (dotNetRef) => ({
+    handler: throttle((e: MouseEvent) => {
+    const obj = eventConvertor.toMouseEvent(e);
+    invokeDotNet(dotNetRef, "WindowMouseMove", obj);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  resize: (dotNetRef) => ({
+    handler: throttle(() => {
+    const viewport = Viewport.getWidthAndHeight();
+    invokeDotNet(dotNetRef, "WindowResize", viewport[0], viewport[1]);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  scroll: (dotNetRef) => ({
+    handler: throttle(() => {
+    invokeDotNet(dotNetRef, "WindowScroll", {});
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  close: (dotNetRef) => ({
+    handler: () => {
+    invokeDotNet(dotNetRef, "WindowClose", {});
+  },
+  }),
+  focus: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const evt = eventConvertor.toFocusEventArgs(e as FocusEvent);
+    invokeDotNet(dotNetRef, "WindowFocus", evt);
+  },
+  }),
+  blur: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const evt = eventConvertor.toFocusEventArgs(e as FocusEvent);
+    invokeDotNet(dotNetRef, "WindowBlur", evt);
+  },
+  }),
+  touchstart: (dotNetRef) => ({
+    handler: throttle((e: TouchEvent) => {
+    const evt = eventConvertor.toTouchEventArgs(e);
+    invokeDotNet(dotNetRef, "WindowTouchStart", evt);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  touchmove: (dotNetRef) => ({
+    handler: throttle((e: TouchEvent) => {
+    const evt = eventConvertor.toTouchEventArgs(e);
+    invokeDotNet(dotNetRef, "WindowTouchMove", evt);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  touchend: (dotNetRef) => ({
+    handler: throttle((e: TouchEvent) => {
+    const evt = eventConvertor.toTouchEventArgs(e);
+    invokeDotNet(dotNetRef, "WindowTouchEnd", evt);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  touchcancel: (dotNetRef) => ({
+    handler: throttle((e: TouchEvent) => {
+    const evt = eventConvertor.toTouchEventArgs(e);
+    invokeDotNet(dotNetRef, "WindowTouchCancel", evt);
+  }, defaultThrottleTicks) as EventHandler,
+  }),
+  keydown: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const evt = eventConvertor.toKeyboardEventArgs(e as KeyboardEvent);
+    invokeDotNet(dotNetRef, "WindowKeyDown", evt);
+  },
+  }),
+  keypress: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const evt = eventConvertor.toKeyboardEventArgs(e as KeyboardEvent);
+    invokeDotNet(dotNetRef, "WindowKeyPress", evt);
+  },
+  }),
+  keyup: (dotNetRef) => ({
+    handler: (e: Event) => {
+    const evt = eventConvertor.toKeyboardEventArgs(e as KeyboardEvent);
+    invokeDotNet(dotNetRef, "WindowKeyUp", evt);
+  },
+  }),
+};
+
+const addWindowEventListener = (eventName: string, dotNetRef: DotNetEventSink) => {
+  const listenerMap = getListenerMap(dotNetRef);
+  if (listenerMap.has(eventName)) {
+    return;
+  }
+
+  const factory = eventMap[eventName];
+  if (!factory) {
+    console.warn(`event ${eventName} is not supported`);
+    return;
+  }
+
+  const registration = factory(dotNetRef);
+  listenerMap.set(eventName, registration);
+  window.addEventListener(eventName, registration.handler);
+};
+
+const removeWindowEventListener = (eventName: string, dotNetRef: DotNetEventSink) => {
+  const listenerMap = listenersByRef.get(getDotNetRefKey(dotNetRef));
+  const registration = listenerMap?.get(eventName);
+  if (!registration) {
+    return;
+  }
+
+  window.removeEventListener(eventName, registration.handler);
+  registration.handler.cancel?.();
+  registration.dispose?.();
+  listenerMap.delete(eventName);
+  if (listenerMap.size === 0) {
+    listenersByRef.delete(getDotNetRefKey(dotNetRef));
+  }
+};
+
+const bindAllWindowEvent = (dotNetRef: DotNetEventSink) => {
+  Object.keys(eventMap).forEach((eventName) => {
+    addWindowEventListener(eventName, dotNetRef);
+  });
+};
+
+const bindWindowEvents = (events: Array<EventInfo>, dotNetRef: DotNetEventSink) => {
   if (!events || events.length === 0) return;
   if (events.some((e) => e.name === "*")) {
-    bindAllWindowEvent();
+    bindAllWindowEvent(dotNetRef);
     return;
   }
 
@@ -222,13 +361,27 @@ const bindWindowEvents = (events: Array<EventInfo>) => {
       console.error("error event name is required");
       continue;
     }
-    console.debug("event name", events[i].name, eventMap[events[i].name]);
-    if(eventMap[events[i].name]){
-      window.addEventListener(events[i].name, eventMap[events[i].name]);
-    } else {
-        console.warn(`event ${events[i].name} is not supported`);
-    }
+
+    addWindowEventListener(events[i].name, dotNetRef);
   }
 };
 
-export { bindAllWindowEvent, bindWindowEvents };
+const removeWindowEventsListener = (events: Array<EventInfo>, dotNetRef: DotNetEventSink) => {
+  if (!events || events.length === 0) return;
+  if (events.some((e) => e.name === "*")) {
+    Object.keys(eventMap).forEach((eventName) => {
+      removeWindowEventListener(eventName, dotNetRef);
+    });
+    return;
+  }
+
+  for (let i = 0; i < events.length; i++) {
+    if (!events[i].name) {
+      continue;
+    }
+
+    removeWindowEventListener(events[i].name, dotNetRef);
+  }
+};
+
+export { bindAllWindowEvent, bindWindowEvents, removeWindowEventsListener };

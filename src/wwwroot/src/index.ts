@@ -3,7 +3,10 @@
 import Viewport from "./module/Viewport";
 import htmlElementHelper from "./module/HtmlElementHelper";
 import * as dragHelper from "./module/DragHelper";
-import { bindWindowEvents, EventInfo } from "./module/eventHelper";
+import {
+  bindWindowEvents,
+  removeWindowEventsListener,
+} from "./module/eventHelper";
 import { debounce, throttle } from "./module/common";
 import * as domHelper from "./module/domHelper";
 const version = "10.0.0";
@@ -25,6 +28,7 @@ const bQuery = {
   debounce,
 
   addWindowEventsListener: bindWindowEvents,
+  removeWindowEventsListener,
 
  
 };

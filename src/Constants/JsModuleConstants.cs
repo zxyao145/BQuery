@@ -73,4 +73,5 @@ public class JsModuleConstants
     public static string GetUserAgent => "getUserAgent";
 
     public static string AddWindowEventsListener => "addWindowEventsListener";
+    public static string RemoveWindowEventsListener => "removeWindowEventsListener";
 }
