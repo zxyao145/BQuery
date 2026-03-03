@@ -187,12 +187,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double> GetWidthAsync(this ElementReference element, bool isOuter = true)
     {
-        var methodName = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.ElementExtensions.ModuleName,
-            JsModuleConstants.ElementExtensions.GetWidth
-            );
-        return await element.GetJs().InvokeAsync<double>(methodName, element, isOuter);
+        return await element.GetJs().InvokeAsync<double>(ElementConstants.GetWidthMethod, element, isOuter);
     }
 
     /// <summary>
@@ -203,13 +198,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double> GetHeightAsync(this ElementReference element, bool isOuter = true)
     {
-        var methodName = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.ElementExtensions.ModuleName,
-            JsModuleConstants.ElementExtensions.GetHeight
-            );
-
-        return await element.GetJs().InvokeAsync<double>(methodName, element, isOuter);
+        return await element.GetJs().InvokeAsync<double>(ElementConstants.GetHeightMethod, element, isOuter);
     }
 
     /// <summary>
@@ -220,13 +209,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double[]> GetWidthAndHeightAsync(this ElementReference element, bool isOuter = true)
     {
-        var methodName = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.ElementExtensions.ModuleName,
-            JsModuleConstants.ElementExtensions.GetWidthAndHeight
-            );
-
-        return await element.GetJs().InvokeAsync<double[]>(methodName, element, isOuter);
+        return await element.GetJs().InvokeAsync<double[]>(ElementConstants.GetWidthAndHeightMethod, element, isOuter);
     }
 
     #endregion
@@ -240,13 +223,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double> GetScrollWidthAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.ElementExtensions.ModuleName,
-            JsModuleConstants.ElementExtensions.GetScrollWidth
-            );
-
-        return await element.GetJs().InvokeAsync<double>(methodName, element);
+        return await element.GetJs().InvokeAsync<double>(ElementConstants.GetScrollWidthMethod, element);
     }
 
     /// <summary>
@@ -256,13 +233,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double> GetScrollHeightAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.ElementExtensions.ModuleName,
-            JsModuleConstants.ElementExtensions.GetScrollHeight
-            );
-
-        return await element.GetJs().InvokeAsync<double>(methodName, element);
+        return await element.GetJs().InvokeAsync<double>(ElementConstants.GetScrollHeightMethod, element);
     }
 
     /// <summary>
@@ -272,13 +243,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double[]> GetScrollWidthAndHeightAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-           JsModuleConstants.ModuleName,
-           JsModuleConstants.ElementExtensions.ModuleName,
-           JsModuleConstants.ElementExtensions.GetScrollWidthAndHeight
-           );
-
-        return await element.GetJs().InvokeAsync<double[]>(methodName, element);
+        return await element.GetJs().InvokeAsync<double[]>(ElementConstants.GetScrollWidthAndHeightMethod, element);
     }
 
     #endregion
@@ -291,13 +256,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double> GetScrollLeftAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-           JsModuleConstants.ModuleName,
-           JsModuleConstants.ElementExtensions.ModuleName,
-           JsModuleConstants.ElementExtensions.GetScrollLeft
-           );
-
-        return await element.GetJs().InvokeAsync<double>(methodName, element);
+        return await element.GetJs().InvokeAsync<double>(ElementConstants.GetScrollLeftMethod, element);
     }
 
     /// <summary>
@@ -306,13 +265,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<double> GetScrollTopAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-           JsModuleConstants.ModuleName,
-           JsModuleConstants.ElementExtensions.ModuleName,
-           JsModuleConstants.ElementExtensions.GetScrollTop
-           );
-
-        return await element.GetJs().InvokeAsync<double>(methodName, element);
+        return await element.GetJs().InvokeAsync<double>(ElementConstants.GetScrollTopMethod, element);
     }
 
     /// <summary>
@@ -321,13 +274,7 @@ public static class ElementReferenceExtensions
     /// <returns>double array: [left, top]</returns>
     public static async Task<double[]> GetScrollLeftAndTopAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-           JsModuleConstants.ModuleName,
-           JsModuleConstants.ElementExtensions.ModuleName,
-           JsModuleConstants.ElementExtensions.GetScrollLeftAndTop
-           );
-
-        return await element.GetJs().InvokeAsync<double[]>(methodName, element);
+        return await element.GetJs().InvokeAsync<double[]>(ElementConstants.GetScrollLeftAndTopMethod, element);
     }
 
     #endregion
@@ -341,13 +288,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<ElePosition> GetPositionInViewportAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-          JsModuleConstants.ModuleName,
-          JsModuleConstants.ElementExtensions.ModuleName,
-          JsModuleConstants.ElementExtensions.GetPositionInViewport
-          );
-
-        return await element.GetJs().InvokeAsync<ElePosition>(methodName, element);
+        return await element.GetJs().InvokeAsync<ElePosition>(ElementConstants.GetPositionInViewportMethod, element);
     }
 
     /// <summary>
@@ -357,13 +298,7 @@ public static class ElementReferenceExtensions
     /// <returns></returns>
     public static async Task<ElePosition> GetPositionInDocAsync(this ElementReference element)
     {
-        var methodName = JsModuleConstants.GetMethod(
-          JsModuleConstants.ModuleName,
-          JsModuleConstants.ElementExtensions.ModuleName,
-          JsModuleConstants.ElementExtensions.GetPositionInDoc
-          );
-
-        return await element.GetJs().InvokeAsync<ElePosition>(methodName, element);
+        return await element.GetJs().InvokeAsync<ElePosition>(ElementConstants.GetPositionInDocMethod, element);
     }
 
     #endregion

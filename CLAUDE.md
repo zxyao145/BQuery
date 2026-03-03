@@ -18,12 +18,12 @@ The library is multi-targeted: .NET 8.0 and .NET 10.0.
 ```bash
 dotnet build                    # Build the solution
 dotnet build -c Release         # Release build (triggers JS build automatically)
-dotnet pack src/BQuery.csproj -c Release   # Create NuGet package
+dotnet pack src/BQuery/BQuery.csproj -c Release   # Create NuGet package
 ```
 
 ### TypeScript/JavaScript
 ```bash
-cd src/wwwroot
+cd src/BQuery/wwwroot
 pnpm install                    # Install dependencies
 pnpm run build                  # Production build (minified, no sourcemap)
 pnpm run dev                    # Development build (with sourcemap, watch mode)
@@ -33,19 +33,26 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 
 ## Architecture
 
-### C# Side (`src/`)
+### C# Side (`src/BQuery/`)
 
 | File | Purpose |
 |------|---------|
-| `Bq.cs` | Main static entry point with `Events` and `Viewport` properties |
+| `BqObject.cs` | Main scoped service exposing `Events`, `Viewport`, drag APIs, and window listener registration |
 | `BqEvents.cs` | Window event hub - exposes sync `Action` and async `Func<Task>` events |
-| `BqInterop.cs` | `[JSInvokable]` callbacks that JavaScript calls to forward browser events |
 | `BqViewport.cs` | Viewport measurement APIs (width, height, scroll positions) |
 | `ElementReferenceExtensions.cs` | Extension methods on `ElementReference` for DOM operations |
-| `JsModuleConstants.cs` | JavaScript function name constants for interop calls |
+| `Constants/JsModuleConstants.cs` | JavaScript function name constants for interop calls |
+| `Constants/WindowEvents.cs` | Window event names and metadata used by runtime code and source generators |
+| `SourceGeneration/` | Source-generator attributes consumed by the main library |
 | `AspNetExtensions/` | `UseBQuery()` startup extensions for WASM and Server hosting |
 
-### TypeScript Side (`src/wwwroot/src/`)
+### Source Generator Side (`src/BQuery.SourceGenerators/`)
+
+| File | Purpose |
+|------|---------|
+| `JsInteropMethodsGenerator.cs` | Generates `*Method` constants from `JsModuleConstants` groups |
+
+### TypeScript Side (`src/BQuery/wwwroot/src/`)
 
 | Module | Purpose |
 |--------|---------|
@@ -59,8 +66,8 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 
 ### Interop Pattern
 
-1. **C# → JS**: C# calls `IJSRuntime.InvokeAsync` using method names from `JsModuleConstants`
-2. **JS → C#**: JavaScript calls `DotNet.invokeMethod` to trigger `[JSInvokable]` methods in `BqInterop`, which then raises events on `Bq.Events`
+1. **C# → JS**: C# calls `IJSRuntime.InvokeAsync` using generated `*Method` constants derived from `JsModuleConstants`
+2. **JS → C#**: JavaScript calls `DotNetObjectReference.invokeMethodAsync` on the scoped `BqEvents` instance, which raises the matching .NET events
 
 The JavaScript module path is `./_content/BQuery/dist/bQuery.min.mjs` (ES module format).
 
@@ -76,6 +83,18 @@ private static extern ref IJSRuntime GetJsRuntime(WebElementReferenceContext con
 ### Event Naming Convention
 - JavaScript function names: camelCase (e.g., `getWidth`, `getScrollTop`)
 - C# method names: PascalCase with `Async` suffix (e.g., `GetWidthAsync`, `GetScrollTopAsync`)
+
+### Source Generator Rules
+- Prefer the JS interop source generator over manually calling `JsModuleConstants.GetMethod(...)`.
+- To enable generation for a constant group, declare a local partial marker class with `[GenerateJsInteropMethods(typeof(...))]`.
+- Use generated fields in the form `<MethodName>Method`, for example `ElementConstants.GetWidthMethod` or `DragConstants.BindDragMethod`.
+- For nested constant groups such as `JsModuleConstants.ElementExtensions` or `JsModuleConstants.Drag`, create a dedicated marker class such as `ElementConstants` or `DragConstants`.
+- For top-level methods on `JsModuleConstants`, use a marker class such as `BqConstants`.
+- Keep marker classes close to the consuming code unless there is a clear shared location that improves discoverability.
+- When adding new JS interop APIs, add the method name to `JsModuleConstants` first, then consume it through the generated constant class rather than string concatenation.
+- Do not introduce new direct `JsModuleConstants.GetMethod(...)` calls in application code unless the usage is too dynamic for source generation.
+- Use `WindowEvents.cs` as the single definition point for window-event metadata. If event declarations in `BqEvents` are generator-driven, add or update the corresponding metadata there instead of duplicating event boilerplate by hand.
+- When a generator depends on constants metadata, prefer extending the constants definition with attributes over hard-coding parallel lookup tables inside the generator.
 
 ### Sample Projects
 The `Sample/` directory contains:

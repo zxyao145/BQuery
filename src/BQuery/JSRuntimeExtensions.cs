@@ -14,10 +14,6 @@ public static class JSRuntimeExtensions
     /// <returns></returns>
     public static async Task<string> GetUserAgentAsync(this IJSRuntime jsRuntime)
     {
-        var methodName = JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.GetUserAgent
-                );
-        return await jsRuntime.InvokeAsync<string>(methodName);
+        return await jsRuntime.InvokeAsync<string>(BqConstants.GetUserAgentMethod);
     }
 }

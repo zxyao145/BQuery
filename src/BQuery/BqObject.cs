@@ -1,5 +1,15 @@
 namespace BQuery;
 
+[GenerateJsInteropMethods(typeof(JsModuleConstants))]
+internal partial class BqConstants
+{
+}
+
+[GenerateJsInteropMethods(typeof(JsModuleConstants.Drag))]
+internal partial class DragConstants
+{
+}
+
 public class BqObject : IAsyncDisposable
 {
     private readonly DotNetObjectReference<BqEvents> _eventsReference;
@@ -47,9 +57,7 @@ public class BqObject : IAsyncDisposable
         }
 
         await _jsRuntime.InvokeVoidAsync(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.AddWindowEventsListener),
+            BqConstants.AddWindowEventsListenerMethod,
             eventList,
             _listenerId,
             _eventsReference);
@@ -79,9 +87,7 @@ public class BqObject : IAsyncDisposable
         }
 
         await _jsRuntime.InvokeVoidAsync(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.RemoveWindowEventsListener),
+            BqConstants.RemoveWindowEventsListenerMethod,
             eventList,
             _listenerId,
             _eventsReference);
@@ -93,10 +99,7 @@ public class BqObject : IAsyncDisposable
     public async Task<string> GetUserAgentAsync()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return await _jsRuntime.InvokeAsync<string>(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.GetUserAgent));
+        return await _jsRuntime.InvokeAsync<string>(BqConstants.GetUserAgentMethod);
     }
 
     #region drag
@@ -108,12 +111,7 @@ public class BqObject : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var method = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.Drag.ModuleName,
-            JsModuleConstants.Drag.BindDrag
-            );
-        await _jsRuntime.InvokeVoidAsync(method, element, options);
+        await _jsRuntime.InvokeVoidAsync(DragConstants.BindDragMethod, element, options);
     }
 
     /// <summary>
@@ -123,12 +121,7 @@ public class BqObject : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var method = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.Drag.ModuleName,
-            JsModuleConstants.Drag.RemoveDraggable
-            );
-        await _jsRuntime.InvokeVoidAsync(method, GetDragTrigger(element, options));
+        await _jsRuntime.InvokeVoidAsync(DragConstants.RemoveDraggableMethod, GetDragTrigger(element, options));
     }
 
     /// <summary>
@@ -138,12 +131,7 @@ public class BqObject : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var method = JsModuleConstants.GetMethod(
-            JsModuleConstants.ModuleName,
-            JsModuleConstants.Drag.ModuleName,
-            JsModuleConstants.Drag.ResetDraggableElePosition
-            );
-        await _jsRuntime.InvokeVoidAsync(method, GetDragTrigger(element, options));
+        await _jsRuntime.InvokeVoidAsync(DragConstants.ResetDraggableElePositionMethod, GetDragTrigger(element, options));
     }
 
     /// <summary>
@@ -163,9 +151,7 @@ public class BqObject : IAsyncDisposable
             if (_registeredEvents.Count > 0)
             {
                 await _jsRuntime.InvokeVoidAsync(
-                    JsModuleConstants.GetMethod(
-                        JsModuleConstants.ModuleName,
-                        JsModuleConstants.RemoveWindowEventsListener),
+                    BqConstants.RemoveWindowEventsListenerMethod,
                     _registeredEvents.ToArray(),
                     _listenerId,
                     _eventsReference);
