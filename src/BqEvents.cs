@@ -5,6 +5,11 @@ namespace BQuery;
 /// </summary>
 public class BqEvents
 {
+    private static void ReportHandlerException(Exception exception)
+    {
+        Console.Error.WriteLine($"BQuery window event handler failed: {exception}");
+    }
+
     // Reusable slot type so new window events only need a backing field plus the public declarations.
     private sealed class EventSlot<T>
     {
@@ -25,16 +30,47 @@ public class BqEvents
 
         public async Task InvokeAsync(T args)
         {
-            _syncHandlers?.Invoke(args);
+            List<Task>? pendingTasks = null;
 
-            if (_asyncHandlers is null)
+            if (_syncHandlers is not null)
             {
-                return;
+                foreach (var handler in _syncHandlers.GetInvocationList().Cast<Action<T>>())
+                {
+                    try
+                    {
+                        handler(args);
+                    }
+                    catch (Exception exception)
+                    {
+                        ReportHandlerException(exception);
+                    }
+                }
             }
 
-            foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T, Task>>())
+            if (_asyncHandlers is not null)
+            {
+                pendingTasks = [];
+                foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T, Task>>())
+                {
+                    pendingTasks.Add(InvokeAsyncHandler(handler, args));
+                }
+            }
+
+            if (pendingTasks is not null)
+            {
+                await Task.WhenAll(pendingTasks);
+            }
+        }
+
+        private static async Task InvokeAsyncHandler(Func<T, Task> handler, T args)
+        {
+            try
             {
                 await handler(args);
+            }
+            catch (Exception exception)
+            {
+                ReportHandlerException(exception);
             }
         }
     }
@@ -58,16 +94,47 @@ public class BqEvents
 
         public async Task InvokeAsync(T1 arg1, T2 arg2)
         {
-            _syncHandlers?.Invoke(arg1, arg2);
+            List<Task>? pendingTasks = null;
 
-            if (_asyncHandlers is null)
+            if (_syncHandlers is not null)
             {
-                return;
+                foreach (var handler in _syncHandlers.GetInvocationList().Cast<Action<T1, T2>>())
+                {
+                    try
+                    {
+                        handler(arg1, arg2);
+                    }
+                    catch (Exception exception)
+                    {
+                        ReportHandlerException(exception);
+                    }
+                }
             }
 
-            foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T1, T2, Task>>())
+            if (_asyncHandlers is not null)
+            {
+                pendingTasks = [];
+                foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T1, T2, Task>>())
+                {
+                    pendingTasks.Add(InvokeAsyncHandler(handler, arg1, arg2));
+                }
+            }
+
+            if (pendingTasks is not null)
+            {
+                await Task.WhenAll(pendingTasks);
+            }
+        }
+
+        private static async Task InvokeAsyncHandler(Func<T1, T2, Task> handler, T1 arg1, T2 arg2)
+        {
+            try
             {
                 await handler(arg1, arg2);
+            }
+            catch (Exception exception)
+            {
+                ReportHandlerException(exception);
             }
         }
     }
