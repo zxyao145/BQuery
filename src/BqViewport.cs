@@ -2,7 +2,7 @@
 
 public class BqViewport
 {
-    private readonly Func<ValueTask<IJSObjectReference>> _moduleAccessor;
+    private readonly IJSRuntime _jsRuntime;
     private static readonly string GetWidthMethod = JsModuleConstants.GetMethod(
         JsModuleConstants.Viewport.ModuleName,
         JsModuleConstants.Viewport.GetWidth);
@@ -31,14 +31,9 @@ public class BqViewport
         JsModuleConstants.Viewport.ModuleName,
         JsModuleConstants.Viewport.GetScrollLeftAndTop);
 
-    internal BqViewport(Func<ValueTask<IJSObjectReference>> moduleAccessor)
+    internal BqViewport(IJSRuntime jsRuntime)
     {
-        _moduleAccessor = moduleAccessor;
-    }
-
-    private ValueTask<IJSObjectReference> GetModuleAsync()
-    {
-        return _moduleAccessor();
+        _jsRuntime = jsRuntime;
     }
 
 
@@ -50,7 +45,7 @@ public class BqViewport
     /// <returns></returns>
     public async Task<double> GetWidthAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(GetWidthMethod);
+        return await _jsRuntime.InvokeAsync<double>(GetWidthMethod);
     }
 
     /// <summary>
@@ -59,7 +54,7 @@ public class BqViewport
     /// <returns></returns>
     public async Task<double> GetHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(GetHeightMethod);
+        return await _jsRuntime.InvokeAsync<double>(GetHeightMethod);
     }
 
     /// <summary>
@@ -68,7 +63,7 @@ public class BqViewport
     /// <returns>double array: [width,height]</returns>
     public async Task<double[]> GetWidthAndHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double[]>(GetWidthAndHeightMethod);
+        return await _jsRuntime.InvokeAsync<double[]>(GetWidthAndHeightMethod);
     }
 
     #endregion
@@ -81,7 +76,7 @@ public class BqViewport
     /// <returns></returns>
     public async Task<double> GetScrollWidthAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollWidthMethod);
+        return await _jsRuntime.InvokeAsync<double>(GetScrollWidthMethod);
     }
 
     /// <summary>
@@ -90,7 +85,7 @@ public class BqViewport
     /// <returns></returns>
     public async Task<double> GetScrollHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollHeightMethod);
+        return await _jsRuntime.InvokeAsync<double>(GetScrollHeightMethod);
     }
 
     /// <summary>
@@ -99,7 +94,7 @@ public class BqViewport
     /// <returns>double array: [width,height]</returns>
     public async Task<double[]> GetScrollWidthAndHeightAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double[]>(GetScrollWidthAndHeightMethod);
+        return await _jsRuntime.InvokeAsync<double[]>(GetScrollWidthAndHeightMethod);
     }
 
     #endregion
@@ -110,7 +105,7 @@ public class BqViewport
     /// <returns></returns>
     public async Task<double> GetScrollLeftAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollLeftMethod);
+        return await _jsRuntime.InvokeAsync<double>(GetScrollLeftMethod);
     }
 
     /// <summary>
@@ -119,7 +114,7 @@ public class BqViewport
     /// <returns></returns>
     public async Task<double> GetScrollTopAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double>(GetScrollTopMethod);
+        return await _jsRuntime.InvokeAsync<double>(GetScrollTopMethod);
     }
 
     /// <summary>
@@ -128,7 +123,7 @@ public class BqViewport
     /// <returns>double array: [left, top]</returns>
     public async Task<double[]> GetScrollLeftAndTopAsync()
     {
-        return await (await GetModuleAsync()).InvokeAsync<double[]>(GetScrollLeftAndTopMethod);
+        return await _jsRuntime.InvokeAsync<double[]>(GetScrollLeftAndTopMethod);
     }
 
 }

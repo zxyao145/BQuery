@@ -2,8 +2,6 @@ namespace BQuery;
 
 public class BqObject : IAsyncDisposable
 {
-    private Lazy<Task<IJSObjectReference>>? moduleTask;
-    private IJSObjectReference? _module;
     private readonly DotNetObjectReference<BqEvents> _eventsReference;
     private readonly string _listenerId = Guid.NewGuid().ToString("N");
     private readonly HashSet<WindowEvent> _registeredEvents = [];
@@ -13,26 +11,9 @@ public class BqObject : IAsyncDisposable
     public BqObject(IJSRuntime jsRuntime, BqEvents events)
     {
         _jsRuntime = jsRuntime;
-        moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-           "import", JsModuleConstants.MJS).AsTask());
-
-        Viewport = new BqViewport(GetModuleAsync);
+        Viewport = new BqViewport(jsRuntime);
         Events = events;
         _eventsReference = DotNetObjectReference.Create(events);
-    }
-
-    private async ValueTask<IJSObjectReference> GetModuleAsync()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (_module != null)
-        {
-            return _module;
-        }
-
-        var importedModule = await moduleTask!.Value;
-        _module = await importedModule.InvokeAsync<IJSObjectReference>("getBq");
-        return _module;
     }
 
     /// <summary>
@@ -65,12 +46,13 @@ public class BqObject : IAsyncDisposable
             _registeredEvents.Add(windowEvent);
         }
 
-        await (await GetModuleAsync())
-            .InvokeVoidAsync(
-                JsModuleConstants.AddWindowEventsListener,
-                eventList,
-                _listenerId,
-                _eventsReference);
+        await _jsRuntime.InvokeVoidAsync(
+            JsModuleConstants.GetMethod(
+                JsModuleConstants.ModuleName,
+                JsModuleConstants.AddWindowEventsListener),
+            eventList,
+            _listenerId,
+            _eventsReference);
     }
 
 
@@ -96,12 +78,13 @@ public class BqObject : IAsyncDisposable
             _registeredEvents.Remove(windowEvent);
         }
 
-        await (await GetModuleAsync())
-            .InvokeVoidAsync(
-                JsModuleConstants.RemoveWindowEventsListener,
-                eventList,
-                _listenerId,
-                _eventsReference);
+        await _jsRuntime.InvokeVoidAsync(
+            JsModuleConstants.GetMethod(
+                JsModuleConstants.ModuleName,
+                JsModuleConstants.RemoveWindowEventsListener),
+            eventList,
+            _listenerId,
+            _eventsReference);
     }
 
     /// <summary>
@@ -110,8 +93,10 @@ public class BqObject : IAsyncDisposable
     public async Task<string> GetUserAgentAsync()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return await (await GetModuleAsync())
-            .InvokeAsync<string>(JsModuleConstants.GetUserAgent);
+        return await _jsRuntime.InvokeAsync<string>(
+            JsModuleConstants.GetMethod(
+                JsModuleConstants.ModuleName,
+                JsModuleConstants.GetUserAgent));
     }
 
     #region drag
@@ -143,30 +128,18 @@ public class BqObject : IAsyncDisposable
 
         _disposed = true;
 
-        if (_module != null && _registeredEvents.Count > 0)
+        if (_registeredEvents.Count > 0)
         {
-            await _module.InvokeVoidAsync(
-                JsModuleConstants.RemoveWindowEventsListener,
+            await _jsRuntime.InvokeVoidAsync(
+                JsModuleConstants.GetMethod(
+                    JsModuleConstants.ModuleName,
+                    JsModuleConstants.RemoveWindowEventsListener),
                 _registeredEvents.ToArray(),
                 _listenerId,
                 _eventsReference);
         }
 
         _registeredEvents.Clear();
-
-        if (_module != null)
-        {
-            await _module.DisposeAsync();
-            _module = null;
-        }
-
-        if (moduleTask != null && moduleTask.IsValueCreated)
-        {
-            var module = await moduleTask.Value;
-            await module.DisposeAsync();
-            moduleTask = null;
-        }
-
         _eventsReference.Dispose();
     }
 
