@@ -77,6 +77,8 @@ public readonly struct WindowEvent : IEquatable<WindowEvent>
     public static readonly WindowEvent OnTouchEnd = new("touchend");
     public static readonly WindowEvent OnTouchCancel = new("touchcancel");
     public static readonly WindowEvent OnKeyDown = new("keydown");
+    public static readonly WindowEvent OnKeyPress = new("keypress");
+    public static readonly WindowEvent OnKeyUp = new("keyup");
 
     #endregion
 }

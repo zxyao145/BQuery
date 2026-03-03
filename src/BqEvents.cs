@@ -394,12 +394,12 @@ public class BqEvents
 
     #endregion
 
-    #region OnDbClick
+    #region OnDoubleClick
 
     /// <summary>
     /// Current-scope double-click event synthesized from window click events.
     /// </summary>
-    public event Action<MouseEventArgs>? OnDbClick
+    public event Action<MouseEventArgs>? OnDoubleClick
     {
         add => _dbClick.Sync += value;
         remove => _dbClick.Sync -= value;
@@ -408,7 +408,7 @@ public class BqEvents
     /// <summary>
     /// Current-scope asynchronous double-click event synthesized from window click events.
     /// </summary>
-    public event Func<MouseEventArgs, Task>? OnDbClickAsync
+    public event Func<MouseEventArgs, Task>? OnDoubleClickAsync
     {
         add => _dbClick.Async += value;
         remove => _dbClick.Async -= value;
@@ -419,7 +419,7 @@ public class BqEvents
     /// This method is intended for JS interop and should not normally be called directly.
     /// </summary>
     [JSInvokable]
-    public Task WindowDbClick(MouseEventArgs e) => _dbClick.InvokeAsync(e);
+    public Task WindowDoubleClick(MouseEventArgs e) => _dbClick.InvokeAsync(e);
 
     #endregion
 

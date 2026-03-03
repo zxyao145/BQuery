@@ -151,7 +151,7 @@ const createClickHandler = (dotNetRef: DotNetEventSink): ListenerRegistration =>
         window.clearTimeout(clickTimeout);
         clickTimeout = null;
       }
-      invokeDotNet(dotNetRef, "WindowDbClick", obj);
+      invokeDotNet(dotNetRef, "WindowDoubleClick", obj);
       lastClick = null;
       return;
     }

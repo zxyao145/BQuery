@@ -18,7 +18,7 @@ namespace BQuery.Sample.Common.Pages
             { 
               bq.Events.OnMouseMoveAsync += Events_OnMouseMove;
               bq.Events.OnClickAsync += Events_OnClick;
-              bq.Events.OnDbClickAsync += Events_OnDbClick;
+              bq.Events.OnDoubleClickAsync += Events_OnDoubleClick;
               bq.Events.OnMouseDownAsync += Events_OnMouseDown;
               bq.Events.OnMouseUpAsync += Events_OnMouseUp;
               bq.Events.OnKeyDownAsync += Events_OnKeyDown;
@@ -83,7 +83,7 @@ namespace BQuery.Sample.Common.Pages
         private double _dbClickY;
         private bool _shiftKey;
 
-        private async Task Events_OnDbClick(MouseEventArgs obj)
+        private async Task Events_OnDoubleClick(MouseEventArgs obj)
         {
             _dbClickX = obj.ClientX;
             _dbClickY = obj.ClientY;

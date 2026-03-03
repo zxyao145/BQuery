@@ -4,10 +4,9 @@ Source: [BQuery/wwwroot/src/bQuery.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot
 
 ## Initialization
 
-`window.bQuery` is assigned only when `window.bqInit()` runs.
+`window.bQuery` is assigned when the script loads.
 
-- On script load, `window.bqInit` is set to a one-time initializer.
-- When called, it assigns `window.bQuery`, logs `"bQuery is Ready"`, binds internal events, and sets `window.bqInit` back to `null`.
+- On script load, the library assigns `window.bQuery` directly.
 
 Relevant sources:
 
@@ -97,7 +96,7 @@ interface WindowBQuery {
 
 ### `version: string`
 
-Current implementation value: `"3.1.0"`.
+Current implementation value: `"10.0.0"`.
 
 Source:
 

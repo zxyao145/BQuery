@@ -67,9 +67,10 @@ public class JsModuleConstants
     {
         public static readonly string ModuleName = "drag";
         public static string BindDrag => "bindDrag";
+        public static string RemoveDraggable => "removeDraggable";
+        public static string ResetDraggableElePosition => "resetDraggableElePosition";
     }
 
-    public static string BQueryReady => "bqInit";
     public static string GetUserAgent => "getUserAgent";
 
     public static string AddWindowEventsListener => "addWindowEventsListener";

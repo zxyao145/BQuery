@@ -117,6 +117,36 @@ public class BqObject : IAsyncDisposable
     }
 
     /// <summary>
+    /// remove drag binding for the target element or its configured drag trigger
+    /// </summary>
+    public async Task RemoveDragAsync(ElementReference element, DragOptions? options = null)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var method = JsModuleConstants.GetMethod(
+            JsModuleConstants.ModuleName,
+            JsModuleConstants.Drag.ModuleName,
+            JsModuleConstants.Drag.RemoveDraggable
+            );
+        await _jsRuntime.InvokeVoidAsync(method, GetDragTrigger(element, options));
+    }
+
+    /// <summary>
+    /// reset drag position for the target element or its configured drag trigger
+    /// </summary>
+    public async Task ResetDragPositionAsync(ElementReference element, DragOptions? options = null)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var method = JsModuleConstants.GetMethod(
+            JsModuleConstants.ModuleName,
+            JsModuleConstants.Drag.ModuleName,
+            JsModuleConstants.Drag.ResetDraggableElePosition
+            );
+        await _jsRuntime.InvokeVoidAsync(method, GetDragTrigger(element, options));
+    }
+
+    /// <summary>
     /// Disposes the JavaScript module reference and unregisters scoped window listeners.
     /// </summary>
     public async ValueTask DisposeAsync()
@@ -128,19 +158,37 @@ public class BqObject : IAsyncDisposable
 
         _disposed = true;
 
-        if (_registeredEvents.Count > 0)
+        try
         {
-            await _jsRuntime.InvokeVoidAsync(
-                JsModuleConstants.GetMethod(
-                    JsModuleConstants.ModuleName,
-                    JsModuleConstants.RemoveWindowEventsListener),
-                _registeredEvents.ToArray(),
-                _listenerId,
-                _eventsReference);
+            if (_registeredEvents.Count > 0)
+            {
+                await _jsRuntime.InvokeVoidAsync(
+                    JsModuleConstants.GetMethod(
+                        JsModuleConstants.ModuleName,
+                        JsModuleConstants.RemoveWindowEventsListener),
+                    _registeredEvents.ToArray(),
+                    _listenerId,
+                    _eventsReference);
+            }
+        }
+        catch (Exception exception) when (CanIgnoreDisposeInteropException(exception))
+        {
         }
 
         _registeredEvents.Clear();
         _eventsReference.Dispose();
+    }
+
+    private static ElementReference GetDragTrigger(ElementReference element, DragOptions? options)
+    {
+        return options?.DragElement ?? element;
+    }
+
+    private static bool CanIgnoreDisposeInteropException(Exception exception)
+    {
+        return exception is JSDisconnectedException
+            or ObjectDisposedException
+            or TaskCanceledException;
     }
 
     #endregion
