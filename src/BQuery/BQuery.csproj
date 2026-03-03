@@ -15,6 +15,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<Nullable>enable</Nullable>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 	</PropertyGroup>
 
 	<ItemGroup Condition=" $(TargetFramework) == 'net6.0' ">
@@ -35,7 +36,14 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.3" />
 	</ItemGroup>
 
-	
+	<ItemGroup>
+		<ProjectReference 
+			Include="../BQuery.SourceGenerators/BQuery.SourceGenerators.csproj"
+			OutputItemType="Analyzer" 
+			ReferenceOutputAssembly="false" 
+			/>
+	</ItemGroup>
+
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
 		<DefaultItemExcludes>

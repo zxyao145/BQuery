@@ -1,44 +1,9 @@
 ﻿namespace BQuery;
 
-public class BqViewport
+[GenerateJsInteropMethods(typeof(JsModuleConstants.Viewport))]
+public partial class BqViewport
 {
     private readonly IJSRuntime _jsRuntime;
-    private static readonly string GetWidthMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetWidth);
-    private static readonly string GetHeightMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetHeight);
-    private static readonly string GetWidthAndHeightMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetWidthAndHeight);
-    private static readonly string GetScrollWidthMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetScrollWidth);
-    private static readonly string GetScrollHeightMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetScrollHeight);
-    private static readonly string GetScrollWidthAndHeightMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetScrollWidthAndHeight);
-    private static readonly string GetScrollLeftMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetScrollLeft);
-    private static readonly string GetScrollTopMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetScrollTop);
-    private static readonly string GetScrollLeftAndTopMethod = JsModuleConstants.GetMethod(
-        JsModuleConstants.ModuleName,
-        JsModuleConstants.Viewport.ModuleName,
-        JsModuleConstants.Viewport.GetScrollLeftAndTop);
 
     internal BqViewport(IJSRuntime jsRuntime)
     {

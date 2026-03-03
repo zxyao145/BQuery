@@ -17,5 +17,8 @@
     <File Path="API.md" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="src/BQuery.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/BQuery/BQuery.csproj" />
+    <Project Path="src/BQuery.SourceGenerators/BQuery.SourceGenerators.csproj" />
+  </Folder>
 </Solution>

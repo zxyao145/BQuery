@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\BQuery.csproj" />
+    <ProjectReference Include="..\..\..\src\BQuery\BQuery.csproj" />
     <ProjectReference Include="..\..\BQuery.Sample.Common\BQuery.Sample.Common.csproj" />
   </ItemGroup>
 

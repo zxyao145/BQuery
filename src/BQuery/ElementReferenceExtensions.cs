@@ -3,6 +3,19 @@ using System.Runtime.CompilerServices;
 
 namespace BQuery;
 
+[GenerateJsInteropMethods(typeof(JsModuleConstants.Dom))]
+internal partial class DomConstants
+{
+
+}
+
+
+[GenerateJsInteropMethods(typeof(JsModuleConstants.ElementExtensions))]
+internal partial class ElementConstants
+{
+
+}
+
 [ExcludeFromCodeCoverage]
 public static class ElementReferenceExtensions
 {
@@ -47,11 +60,7 @@ public static class ElementReferenceExtensions
     {
         await element.GetJs(jsRuntime)
             .InvokeVoidAsync(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.Dom.ModuleName,
-                JsModuleConstants.Dom.Attr
-                ),
+            DomConstants.AttrMethod,
             element, key, value);
     }
 
@@ -83,11 +92,7 @@ public static class ElementReferenceExtensions
     {
         await element.GetJs(jsRuntime)
             .InvokeVoidAsync(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.Dom.ModuleName,
-                JsModuleConstants.Dom.AddCls
-                ),
+            DomConstants.AddClsMethod,
             element, classNames
             );
     }
@@ -118,11 +123,7 @@ public static class ElementReferenceExtensions
     {
         await element.GetJs(jsRuntime)
             .InvokeVoidAsync(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.Dom.ModuleName,
-                JsModuleConstants.Dom.RemoveCls
-                ),
+            DomConstants.RemoveClsMethod,
             element, classNames);
     }
 
@@ -167,11 +168,7 @@ public static class ElementReferenceExtensions
     {
         await element.GetJs(jsRuntime)
             .InvokeVoidAsync(
-            JsModuleConstants.GetMethod(
-                JsModuleConstants.ModuleName,
-                JsModuleConstants.Dom.ModuleName,
-                JsModuleConstants.Dom.Css
-                ),
+            DomConstants.CssMethod,
             element, name, value);
     }
     #endregion
