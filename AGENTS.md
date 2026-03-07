@@ -114,31 +114,3 @@ The `Sample/` directory contains:
 ## CI/CD
 
 The GitHub workflow (`.github/workflows/dotnet-tag.yml`) triggers on tag push, builds for .NET 8/10, and publishes to NuGet.
-
-## Checkpoint 记录
-
-**项目**: BQuery | **时间**: 2026-03-08T00:00:00Z
-**里程碑**: v10.0.0 开发中 - 模块化重构 | **分支**: refactor/module-10.0.0
-
-### 📊 技术状态
-- **代码质量**: 良好 (34个源码文件)
-- **架构健康**: 重构中 (引入源代码生成器)
-- **依赖状态**: 最新 (.NET 8.0/10.0, TypeScript 5.9.3)
-
-### 📋 文档维护
-- [x] **README.md**: 已更新 (版本表、ES模块路径)
-- [x] **配置同步**: 已同步 (package.json v10.0.0)
-- [x] **API文档**: 完整 (API.md, TS-API.md)
-
-### 🎯 期间活动 (首次检查点)
-- **提交数量**: 5个提交
-- **主要变更**: 源代码生成器实现、窗口事件绑定重构
-- **活动强度**: 中
-- **发展趋势**: ⬆️ 上升
-
-### 💡 建议行动
-1. 完成分支合并到 main 前，确保所有测试通过
-2. 考虑为源代码生成器添加更多单元测试
-3. 更新 NuGet 包发布前的版本说明
-
-**Git提交**: `7eeb186` | **健康度**: 8.5/10

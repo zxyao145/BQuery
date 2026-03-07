@@ -2,7 +2,7 @@
 
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BQuery)](https://www.nuget.org/packages/BQuery/)
 
-An extended library of interaction between blazor and js. And The name mimics jQuery.  Now upgrade to .NET 6.
+An extended library of interaction between blazor and js. And The name mimics jQuery.
 
 [Live demo]( https://zxyao145.github.io/BQuery/)
 
@@ -13,10 +13,11 @@ An extended library of interaction between blazor and js. And The name mimics jQ
    1. ServerPrerendered
    2. Server
 
-## 1.2. version
+## 1.2. Version
 
 | BQuery version | .NET version |
 | -------------- | ------------ |
+| 10.x           | .NET 8.0 / .NET 10.0 |
 | 3.x            | .NET 6       |
 | 2.x            | .NET 5       |
 
@@ -27,7 +28,7 @@ An extended library of interaction between blazor and js. And The name mimics jQ
 ### 2.1.1.Add js to wwwroot/index.html
 
 ```js
-<script src="_content/BQuery/bQuery.min.js"></script>
+<script type="module" src="_content/BQuery/dist/bQuery.min.mjs"></script>
 ```
 
 ### 2.1.2.Optional: keep `UseBQuery()` for backward compatibility
@@ -68,7 +69,7 @@ In server side, load the script as follows:
 
 ```js
 <script src="_framework/blazor.server.js" autostart="false"></script>
-<script src="_content/BQuery/bQuery.min.js"></script>
+<script type="module" src="_content/BQuery/dist/bQuery.min.mjs"></script>
 <script>
     Blazor.start({});
 </script>
