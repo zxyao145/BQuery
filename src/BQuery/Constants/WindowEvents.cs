@@ -72,7 +72,7 @@ public readonly struct WindowEvent : IEquatable<WindowEvent>
     public static readonly WindowEvent OnMouseOut = new("mouseout");
     [WindowEventHandler(typeof(MouseEventArgs))]
     public static readonly WindowEvent OnMouseMove = new("mousemove");
-    [WindowEventHandler(typeof(double), typeof(double))]
+    [WindowEventHandler(typeof(ResizeEventArgs))]
     public static readonly WindowEvent OnResize = new("resize");
     [WindowEventHandler(typeof(EventArgs))]
     public static readonly WindowEvent OnScroll = new("scroll");
