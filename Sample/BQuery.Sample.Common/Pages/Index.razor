@@ -129,10 +129,10 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task OnWindowResizeAsync(double width, double height)
+    private async Task OnWindowResizeAsync(ResizeEventArgs e)
     {
-        vw = width;
-        vh = height;
+        vw = e.Width;
+        vh = e.Height;
 
         var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
         scrollW = scrollWH[0];

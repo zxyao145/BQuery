@@ -90,12 +90,11 @@ namespace BQuery
         /// <summary>
         /// js callback on window.onresize trigger
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
+        /// <param name="e"></param>
         [JSInvokable]
-        public static void WindowResize(double width, double height)
+        public static void WindowResize(ResizeEventArgs e)
         {
-            Bq.Events.InvokeOnResize(width, height);
+            Bq.Events.InvokeOnResize(e);
         }
 
         /// <summary>

@@ -116,8 +116,8 @@ Events:
 
 | Event | Handler type | Browser event |
 | --- | --- | --- |
-| `OnResize` | `Action<double, double>` | `window.onresize` |
-| `OnResizeAsync` | `Func<double, double, Task>` | `window.onresize` |
+| `OnResize` | `Action<ResizeEventArgs>` | `window.onresize` |
+| `OnResizeAsync` | `Func<ResizeEventArgs, Task>` | `window.onresize` |
 | `OnScroll` | `Action<EventArgs>` | `window.onscroll` |
 | `OnScrollAsync` | `Func<EventArgs, Task>` | `window.onscroll` |
 | `OnMouseOver` | `Action<MouseEventArgs>` | `window.onmouseover` |
@@ -160,9 +160,9 @@ Events:
 Example:
 
 ```csharp
-Bq.Events.OnResize += (width, height) =>
+Bq.Events.OnResize += e =>
 {
-    Console.WriteLine($"Viewport: {width} x {height}");
+    Console.WriteLine($"Viewport: {e.Width} x {e.Height}");
 };
 ```
 

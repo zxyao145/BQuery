@@ -43,22 +43,20 @@ namespace BQuery
 
         /// <summary>
         /// window.onresize event
-        /// first parameter is width,
-        /// second first parameter is height
+        /// resize args include width and height.
         /// </summary>
-        public event Action<double, double> OnResize;
+        public event Action<ResizeEventArgs> OnResize;
         
         /// <summary>
         /// async window.onresize event
-        /// first parameter is width,
-        /// second first parameter is height, 
+        /// resize args include width and height.
         /// </summary>
-        public event Func<double, double, Task> OnResizeAsync;
+        public event Func<ResizeEventArgs, Task> OnResizeAsync;
 
-        internal void InvokeOnResize(double width, double height)
+        internal void InvokeOnResize(ResizeEventArgs e)
         {
-            OnResize?.Invoke(width, height);
-            OnResizeAsync?.Invoke(width, height);
+            OnResize?.Invoke(e);
+            OnResizeAsync?.Invoke(e);
         }
         
         #endregion

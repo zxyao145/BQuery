@@ -143,7 +143,7 @@ const bindEvent = () => {
 
     window.onresize = throttle(() => {
         var vwhArr = Viewport.getWidthAndHeight();
-        DotNet.invokeMethodAsync("BQuery", "WindowResize", vwhArr[0], vwhArr[1]);
+        DotNet.invokeMethodAsync("BQuery", "WindowResize", { width: vwhArr[0], height: vwhArr[1] });
     }, defaultThrottleTicks);
 
     window.onscroll = throttle((e: Event) => {
