@@ -216,7 +216,7 @@ const createArglessEventHandler = (
 const createResizeHandler = (dotNetRef: DotNetEventSink): ListenerRegistration => ({
   handler: throttle(() => {
     const viewport = Viewport.getWidthAndHeight();
-    invokeDotNet(dotNetRef, "WindowResize", viewport[0], viewport[1]);
+    invokeDotNet(dotNetRef, "WindowResize", { width: viewport[0], height: viewport[1] });
   }, defaultThrottleTicks) as EventHandler,
 });
 

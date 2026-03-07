@@ -178,8 +178,8 @@ note: all the method not show the first patameter:  *this ElementReference eleme
 
 | name                         | describe                     | parameters        |
 | ---------------------------- | ---------------------------- | ----------------- |
-| `event Action OnResize`      | window.onresize event.       | 1: width 2:height |
-| `event Func OnResizeAsync`   | async window.onresize event. | 1: width 2:height |
+| `event Action OnResize`      | window.onresize event.       | ResizeEventArgs: width, height |
+| `event Func OnResizeAsync`   | async window.onresize event. | ResizeEventArgs: width, height |
 | `event Action OnScroll`      | window.onscroll event        | EventArgs         |
 | `event Action OnScrollasync` | async window.onscroll event  | EventArgs         |
 | `event Action<MouseEventArgs> OnMouseOver` | window.onmouseover event | MouseEventArgs |
