@@ -111,6 +111,7 @@ class ElementPositionHelper {
 
     public static getPositionInDoc(element: HTMLElement) {
         if(!element){
+            console.warn("getPositionInDoc: element is null or undefined");
             return {
               x: 0,
               y: 0,
@@ -118,7 +119,6 @@ class ElementPositionHelper {
               height: 0,
             };
         }
-        console.log("getPositionInDoc element", element)
         var rect = {
             x: this.getElementLeftInDoc(element),
             y: this.getElementTopInDoc(element),

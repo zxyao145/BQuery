@@ -1,6 +1,6 @@
 ﻿@page "/"
 @inject IJSRuntime jSRuntime
-@inject BqObject bq
+@inject Bq bq
 @implements IAsyncDisposable
 
 <div class="m-3 ">
@@ -14,6 +14,12 @@
     scrollW:@scrollW<br />
     scrollH:@scrollH
 </div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnMouseClick</h3>
+    mouseClickX: @mouseClickX, mouseClickY: @mouseClickY
+</div>
+
 
 <div @ref="elm" class="m-3 badge-primary text-white"
      style="width: 500px; height: 200px; padding: 10px 8px 5px 2px;">
@@ -82,6 +88,8 @@
     private double mouseClientY;
     private double mouseScreenX;
     private double mouseScreenY;
+    private double mouseClickX;
+    private double mouseClickY;
 
 
     ElementReference elm;
@@ -121,13 +129,15 @@
             await bq.AddWindowEventListeners(
                 WindowEvent.OnResize, 
                 WindowEvent.OnScroll,
-                WindowEvent.OnMouseMove
+                WindowEvent.OnMouseMove,
+                WindowEvent.OnClick
             );
 
             // Bq.Events.OnResize += OnWindowResize;
             bq.WindowEvents.OnResizeAsync += OnWindowResizeAsync;
             bq.WindowEvents.OnScrollAsync += OnWindowScrollAsync;
             bq.WindowEvents.OnMouseMoveAsync += OnWindowMouseMove;
+            bq.WindowEvents.OnClickAsync += OnWindowClick;
 
             vpPos = await elm2.GetPositionInViewportAsync();
 
@@ -168,6 +178,14 @@
         mouseClientY = e.ClientY;
         mouseScreenX = e.ScreenX;
         mouseScreenY = e.ScreenY;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    private async Task OnWindowClick(MouseEventArgs e)
+    {
+        Console.WriteLine($"Events_OnClick {e.ClientX}, {e.ClientY}");
+        mouseClickX = e.ClientX;
+        mouseClickY = e.ClientY;
         await InvokeAsync(() => StateHasChanged());
     }
 

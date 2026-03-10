@@ -131,9 +131,9 @@ Window on scroll
 
 - TS [TS API](./TS-API.md)
 
-## 4.1.`BqObject`
+## 4.1.`Bq`
 
-Resolve `BqObject` from DI and use its instance members:
+Resolve `Bq` from DI and use its instance members:
 
 | **name**                           | describe                    | return    |
 | ---------------------------------- | --------------------------- | --------- |
@@ -141,7 +141,7 @@ Resolve `BqObject` from DI and use its instance members:
 | `Viewport`                         | See **Bq.Viewport.*** below | --        |
 | `Events`                           | See **Bq.Events.*** below   | --        |
 
-## 4.2.`BqObject.Viewport.*`
+## 4.2.`Bq.Viewport.*`
 
 | name                                            | describe                             | return          |
 | ----------------------------------------------- | ------------------------------------ | --------------- |
@@ -175,7 +175,7 @@ note: all the method not show the first patameter:  *this ElementReference eleme
 | ~~`Task FocusAsync()`~~   | focus element                       | Blazor already has a native implementation       | --                 |
 | `Task BindDragAsync(DragOptions options = null)`             | Allow element drag                  | DragOptions                                      | --                 |
 
-## 4.4.`BqObject.Events`.*
+## 4.4.`Bq.Events`.*
 
 | name                         | describe                     | parameters        |
 | ---------------------------- | ---------------------------- | ----------------- |

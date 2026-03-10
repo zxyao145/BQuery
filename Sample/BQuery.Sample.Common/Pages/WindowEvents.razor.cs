@@ -10,7 +10,7 @@ namespace BQuery.Sample.Common.Pages
     public partial class WindowEvents : IAsyncDisposable
     {
         [Inject]
-        private BqObject bq { get; set; }
+        private Bq bq { get; set; }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -18,10 +18,10 @@ namespace BQuery.Sample.Common.Pages
             {
                 // method 1
                 await bq.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnMouseMove, Events_OnMouseMove);
+                await bq.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnClick, Events_OnClick);
 
                 // method 2
                 await bq.AddWindowEventListeners(
-                  WindowEvent.OnClick,
                   WindowEvent.OnDblClick,
                   WindowEvent.OnMouseDown,
                   WindowEvent.OnMouseUp,
@@ -31,7 +31,6 @@ namespace BQuery.Sample.Common.Pages
                   WindowEvent.OnTouchStart
                 );
 
-                bq.WindowEvents.OnClickAsync += Events_OnClick;
                 bq.WindowEvents.OnDblClickAsync += Events_OnDoubleClick;
                 bq.WindowEvents.OnMouseDownAsync += Events_OnMouseDown;
                 bq.WindowEvents.OnMouseUpAsync += Events_OnMouseUp;
@@ -110,6 +109,7 @@ namespace BQuery.Sample.Common.Pages
         private bool _ctrlKey;
         private async Task Events_OnClick(MouseEventArgs obj)
         {
+            Console.WriteLine($"Events_OnClick {obj.ClientX}, {obj.ClientY}");
             _clickX = obj.ClientX;
             _clickY = obj.ClientY;
             _ctrlKey = obj.CtrlKey;

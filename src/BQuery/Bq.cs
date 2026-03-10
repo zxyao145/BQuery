@@ -1,11 +1,11 @@
 namespace BQuery;
 
-public partial class BqObject
+public partial class Bq
 {
 
     private readonly IJSRuntime _jsRuntime;
 
-    public BqObject(IJSRuntime jsRuntime, BqEvents events)
+    public Bq(IJSRuntime jsRuntime, BqEvents events)
     {
         this._jsRuntime = jsRuntime;
         Viewport = new BqViewport(jsRuntime);
@@ -38,7 +38,12 @@ public partial class BqObject
         await WindowEvents.AddWindowEventListeners(windowEvents);
     }
 
-
+    /// <summary>
+    /// if windowEvents is empty, it will remove all event listeners.
+    /// else it will remove the specified event listeners.
+    /// </summary>
+    /// <param name="windowEvents"></param>
+    /// <returns></returns>
     public async Task RemoveWindowEventListeners(params WindowEvent[] windowEvents)
     {
         await WindowEvents.RemoveWindowEventListeners(windowEvents);

@@ -1,6 +1,6 @@
 using BlazorAppAuto.Client.Pages;
 using BlazorAppAuto.Components;
-using BQuery.AspNetExtensions;
+using BQuery;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,9 +9,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Services.AddBQuery();
 
 var app = builder.Build();
-app.Services.UseBQuery();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

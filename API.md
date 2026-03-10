@@ -6,13 +6,13 @@ This document is derived from the public C# surface under `BQuery/*.cs`.
 
 `BQuery` is a Blazor helper library that exposes:
 
-- `BqObject` for browser operations
-- `BqObject.Viewport` for viewport measurements
-- `BqObject.Events` for window-level browser events
+- `Bq` for browser operations
+- `Bq.Viewport` for viewport measurements
+- `Bq.Events` for window-level browser events
 - `ElementReference` extension methods for DOM mutation and measurement
 - `UseBQuery(...)` compatibility extensions for existing startup code
 
-Most APIs are asynchronous. `BqObject` and related services are resolved from DI.
+Most APIs are asynchronous. `Bq` and related services are resolved from DI.
 
 ## Setup
 
@@ -37,17 +37,17 @@ await builder.Build()
     .RunAsync();
 ```
 
-## `BqObject`
+## `Bq`
 
 ```csharp
-public class BqObject
+public class Bq
 ```
 
 Properties:
 
 | Member | Type | Description |
 | --- | --- | --- |
-| `Viewport` | `BqViewport` | Viewport helper backed by the current `BqObject` JS module. |
+| `Viewport` | `BqViewport` | Viewport helper backed by the current `Bq` JS module. |
 | `Events` | `BqEvents` | Window event hub for the current DI scope. |
 
 Methods:
@@ -81,7 +81,7 @@ All members below are declared as extension methods on `ElementReference`.
 public class BqViewport
 ```
 
-Access this instance through `BqObject.Viewport`.
+Access this instance through `Bq.Viewport`.
 
 Methods:
 
@@ -103,7 +103,7 @@ Methods:
 public class BqEvents
 ```
 
-Access this instance through `BqObject.Events`.
+Access this instance through `Bq.Events`.
 
 Each browser event is exposed in two forms:
 

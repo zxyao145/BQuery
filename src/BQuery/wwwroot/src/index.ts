@@ -6,7 +6,7 @@ import * as dragHelper from "./module/DragHelper";
 import * as windowEvents from "./module/eventHelper";
 import { debounce, throttle } from "./module/common";
 import * as domHelper from "./module/domHelper";
-const version = "10.0.0";
+const version = "4.0.0";
 
 const bQuery = {
   version: version,

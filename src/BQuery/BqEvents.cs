@@ -61,7 +61,12 @@ public partial class BqEvents : IAsyncDisposable
             );
     }
 
-
+    /// <summary>
+    /// if windowEvents is empty, it will remove all event listeners.
+    /// else it will remove the specified event listeners.
+    /// </summary>
+    /// <param name="windowEvents"></param>
+    /// <returns></returns>
     public async Task RemoveWindowEventListeners(params WindowEvent[] windowEvents)
     {
         if (_disposed)
@@ -71,6 +76,12 @@ public partial class BqEvents : IAsyncDisposable
 
         if (windowEvents.Length == 0)
         {
+            foreach (var eventSlot in this.EventSlots)
+            {
+                eventSlot.Value.Clear();
+            }
+            _registeredEvents.Clear();
+
             await _jsRuntime.InvokeVoidAsync(
                     WindowEventsConstants.DisposeWindowEventsListenerMethod,
                     _listenerId);
@@ -103,16 +114,13 @@ public partial class BqEvents : IAsyncDisposable
         var eventSlot = this.EventSlots[windowEvent];
         ((EventSlot<T>)eventSlot).Async += func;
 
-        if (eventSlot.Count == 1)
-        {
-            _registeredEvents.Add(windowEvent);
-            await _jsRuntime.InvokeVoidAsync(
-                WindowEventsConstants.AddWindowEventListenerMethod,
-                windowEvent,
-                _listenerId,
-                _eventsReference
-                );
-        }
+        _registeredEvents.Add(windowEvent);
+        await _jsRuntime.InvokeVoidAsync(
+            WindowEventsConstants.AddWindowEventListenerMethod,
+            windowEvent,
+            _listenerId,
+            _eventsReference
+            );
     }
 
     public async Task RemoveWindowEventListener<T>(WindowEvent windowEvent, Func<T, Task> func)
@@ -167,6 +175,8 @@ public partial class BqEvents : IAsyncDisposable
     internal abstract class EventSlot
     {
         public abstract int Count { get; }
+
+        public abstract void Clear();
     }
 
     internal sealed class EventSlot<T>
@@ -175,8 +185,6 @@ public partial class BqEvents : IAsyncDisposable
         private Action<T>? _syncHandlers;
         private Func<T, Task>? _asyncHandlers;
 
-        public override int Count => (_syncHandlers?.GetInvocationList().Length ?? 0) +
-            (_asyncHandlers?.GetInvocationList().Length ?? 0);
 
         public event Action<T>? Sync
         {
@@ -206,16 +214,21 @@ public partial class BqEvents : IAsyncDisposable
 
                 foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T, Task>>())
                 {
-                    pendingTasks.Add(InvokeAsyncHandler(handler, args));
+                    pendingTasks.Add(handler(args));
                 }
 
                 await Task.WhenAll(pendingTasks);
             }
         }
 
-        private static async Task InvokeAsyncHandler(Func<T, Task> handler, T args)
+
+        public override int Count => (_syncHandlers?.GetInvocationList().Length ?? 0)
+            + (_asyncHandlers?.GetInvocationList().Length ?? 0);
+
+        public override void Clear()
         {
-            await handler(args);
+            _syncHandlers = null;
+            _asyncHandlers = null;
         }
     }
 }

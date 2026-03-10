@@ -37,7 +37,7 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 
 | File | Purpose |
 |------|---------|
-| `BqObject.cs` | Main scoped service exposing `Events`, `Viewport`, drag APIs, and window listener registration |
+| `Bq.cs` | Main scoped service exposing `Events`, `Viewport`, drag APIs, and window listener registration |
 | `BqEvents.cs` | Window event hub - partial class augmented by source generator |
 | `BqViewport.cs` | Viewport measurement APIs (width, height, scroll positions) |
 | `ElementReferenceExtensions.cs` | Extension methods on `ElementReference` for DOM operations |

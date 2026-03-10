@@ -1,5 +1,3 @@
-using System;
-
 namespace BQuery;
 
 [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]

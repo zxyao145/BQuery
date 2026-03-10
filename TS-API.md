@@ -96,7 +96,7 @@ interface WindowBQuery {
 
 ### `version: string`
 
-Current implementation value: `"10.0.0"`.
+Current implementation value: `"4.0.0"`.
 
 Source:
 

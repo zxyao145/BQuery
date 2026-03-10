@@ -1,4 +1,4 @@
-using BQuery.AspNetExtensions;
+using BQuery;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

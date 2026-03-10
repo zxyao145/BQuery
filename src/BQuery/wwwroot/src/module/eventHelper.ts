@@ -1,5 +1,5 @@
 ﻿import "../global";
-import { throttle } from "./common";
+import { autoDebug, throttle } from "./common";
 import Viewport from "./Viewport";
 
 export interface EventInfo {
@@ -162,6 +162,9 @@ const createEventHandler = <TEvent extends Event>(
 ): ListenerRegistration => {
   const createHandler = (): EventHandler => (event: Event) => {
     const args = convert(event as TEvent);
+    if(event.type === "keydown"){
+      console.log(`event: ${event.type}, args: `, methodIdentifier, args);
+    }
     invokeDotNet(event.type, methodIdentifier, args);
   };
 
@@ -308,6 +311,14 @@ const addWindowEventListener = (
   }
   eventListeners.set(eventName, new Set<string>([listenerId]));
   const listenerRegistration = eventMap[eventName];
+  autoDebug(() => {
+    console.log(
+      "add event listener for event: ",
+      eventName,
+      "listenerId: ",
+      listenerId,
+    );
+  });
   window.addEventListener(eventName, listenerRegistration.handler);
 };
 
@@ -339,6 +350,14 @@ const removeWindowEventListener = (evt: EventInfo, listenerId: string) => {
     eventListeners.delete(eventName);
     // 没有关心事件的 listenerId， 删除事件监听
     const listenerRegistration = eventMap[eventName];
+    autoDebug(() => {
+      console.log(
+        "remove event listener for event: ",
+        eventName,
+        "listenerId: ",
+        listenerId,
+      );
+    });
     window.removeEventListener(eventName, listenerRegistration.handler);
   }
 };
@@ -365,7 +384,9 @@ const addWindowEventsListener = (
     bindAllWindowEvent(listenerId, dotNetRef);
     return;
   }
-
+  autoDebug(() => {
+    console.log("add events: ", events);
+  });
   for (let i = 0; i < events.length; i++) {
     if (!events[i].name) {
       console.error("error event name is required");
