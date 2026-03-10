@@ -154,6 +154,8 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
 
         builder.AppendLine("    };");
         builder.AppendLine();
+        builder.AppendLine("    internal Dictionary<WindowEvent, EventSlot> EventSlots => _eventSlots; ");
+        builder.AppendLine();
 
         foreach (var windowEvent in target.Events)
         {

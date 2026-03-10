@@ -173,9 +173,6 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (bq is not null)
-        {
-            await bq.DisposeAsync();
-        }
+        await bq.RemoveWindowEventListeners();
     }
 }

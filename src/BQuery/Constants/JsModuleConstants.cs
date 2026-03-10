@@ -79,6 +79,8 @@ public class JsModuleConstants
 
         public static string AddWindowEventListener => "addWindowEventListener";
         public static string RemoveWindowEventListener => "removeWindowEventListener";
+
+        public static string DisposeWindowEventsListener => "disposeWindowEventsListener";
     }
 
     public class Navigator

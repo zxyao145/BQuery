@@ -110,6 +110,15 @@ class ElementPositionHelper {
     }
 
     public static getPositionInDoc(element: HTMLElement) {
+        if(!element){
+            return {
+              x: 0,
+              y: 0,
+              width: 0,
+              height: 0,
+            };
+        }
+        console.log("getPositionInDoc element", element)
         var rect = {
             x: this.getElementLeftInDoc(element),
             y: this.getElementTopInDoc(element),
