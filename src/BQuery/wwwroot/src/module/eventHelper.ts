@@ -7,7 +7,10 @@ export interface EventInfo {
 }
 
 type DotNetEventSink = {
-  invokeMethodAsync(methodIdentifier: string, ...args: unknown[]): Promise<unknown>;
+  invokeMethodAsync(
+    methodIdentifier: string,
+    ...args: unknown[]
+  ): Promise<unknown>;
 };
 
 type EventHandler = EventListener & {
@@ -104,34 +107,50 @@ const eventConvertor: IEventConvertor = {
 const defaultThrottleTicks = 50;
 const doubleClickTimeInterval = 230;
 
-const listenersByRef = new Map<string, Map<string, ListenerRegistration>>();
-
-const getListenerMap = (listenerId: string) => {
-  let listenerMap = listenersByRef.get(listenerId);
-  if (!listenerMap) {
-    listenerMap = new Map<string, ListenerRegistration>();
-    listenersByRef.set(listenerId, listenerMap);
-  }
-  return listenerMap;
-};
+/**
+ * listenerId -->  dotNetRef
+ */
+const listenersDotNetRef = new Map<string, DotNetEventSink>();
+/**
+ * event name  --> listenerId list
+ */
+const eventListeners = new Map<string, Set<string>>();
 
 const isDisposedDotNetReferenceError = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes("There is no tracked object with id")
-    || message.includes("dotNetObjectId");
+  return (
+    message.includes("There is no tracked object with id") ||
+    message.includes("dotNetObjectId")
+  );
 };
 
-const invokeDotNet = (dotNetRef: DotNetEventSink, methodIdentifier: string, ...args: unknown[]) => {
-  void dotNetRef.invokeMethodAsync(methodIdentifier, ...args).catch((error) => {
-    if (isDisposedDotNetReferenceError(error)) {
-      return;
+const invokeDotNet = (
+  eventName: string,
+  methodIdentifier: string,
+  ...args: unknown[]
+) => {
+  const listenerIds = eventListeners.get(eventName);
+  if (!listenerIds) {
+    return;
+  }
+  for (const listenerId of listenerIds) {
+    const dotNetRef = listenersDotNetRef.get(listenerId);
+    if (!dotNetRef) {
+      continue;
     }
+    void dotNetRef
+      .invokeMethodAsync(methodIdentifier, ...args)
+      .catch((error) => {
+        if (isDisposedDotNetReferenceError(error)) {
+          return;
+        }
 
-    console.error(`failed to invoke '${methodIdentifier}'`, error);
-  });
+        console.error(`failed to invoke '${methodIdentifier}'`, error);
+      });
+  }
 };
 
-const createClickHandler = (dotNetRef: DotNetEventSink): ListenerRegistration => {
+const createClickHandler = (): ListenerRegistration => {
   let lastClick: number | null = null;
   let clickTimeout: number | null = null;
   let disposed = false;
@@ -144,14 +163,15 @@ const createClickHandler = (dotNetRef: DotNetEventSink): ListenerRegistration =>
     const evt = e as PointerEvent;
     const obj = eventConvertor.toMouseEvent(evt);
     const now = Date.now();
-    const isDbClick = lastClick !== null && now - lastClick < doubleClickTimeInterval;
+    const isDbClick =
+      lastClick !== null && now - lastClick < doubleClickTimeInterval;
 
     if (isDbClick) {
       if (clickTimeout !== null) {
         window.clearTimeout(clickTimeout);
         clickTimeout = null;
       }
-      invokeDotNet(dotNetRef, "WindowDoubleClick", obj);
+      invokeDotNet("click", "WindowDoubleClick", obj);
       lastClick = null;
       return;
     }
@@ -160,8 +180,7 @@ const createClickHandler = (dotNetRef: DotNetEventSink): ListenerRegistration =>
       if (disposed) {
         return;
       }
-
-      invokeDotNet(dotNetRef, "WindowClick", obj);
+      invokeDotNet("click", "WindowClick", obj);
       clickTimeout = null;
     }, doubleClickTimeInterval);
     lastClick = now;
@@ -180,108 +199,151 @@ const createClickHandler = (dotNetRef: DotNetEventSink): ListenerRegistration =>
   };
 };
 
+type EventHandlerOptions = {
+  eventNames?: readonly string[];
+  throttleMs?: number;
+};
 const createEventHandler = <TEvent extends Event>(
   methodIdentifier: string,
   convert: (event: TEvent) => object,
-  options?: { throttleMs?: number },
-): ((dotNetRef: DotNetEventSink) => ListenerRegistration) => {
-  const createHandler = (dotNetRef: DotNetEventSink): EventHandler => (event: Event) => {
+  options?: EventHandlerOptions,
+): ListenerRegistration => {
+  const createHandler = (): EventHandler => (event: Event) => {
     const args = convert(event as TEvent);
-    invokeDotNet(dotNetRef, methodIdentifier, args);
+    invokeDotNet(event.type, methodIdentifier, args);
   };
 
-  return (dotNetRef) => ({
-    handler: (options?.throttleMs
-      ? throttle(createHandler(dotNetRef), options.throttleMs)
-      : createHandler(dotNetRef)) as EventHandler,
-  });
+  return {
+    handler: options?.throttleMs
+      ? throttle(createHandler(), options.throttleMs)
+      : createHandler(),
+  };
 };
 
 const createArglessEventHandler = (
   methodIdentifier: string,
-  options?: { eventNames?: readonly string[]; throttleMs?: number },
-): ((dotNetRef: DotNetEventSink) => ListenerRegistration) => {
-  const createHandler = (dotNetRef: DotNetEventSink): EventHandler => () => {
-    invokeDotNet(dotNetRef, methodIdentifier, {});
+  options?: EventHandlerOptions,
+): ListenerRegistration => {
+  const createHandler = (): EventHandler => (e: Event) => {
+    invokeDotNet(e.type, methodIdentifier, {});
   };
 
-  return (dotNetRef) => ({
+  return {
     handler: (options?.throttleMs
-      ? throttle(createHandler(dotNetRef), options.throttleMs)
-      : createHandler(dotNetRef)) as EventHandler,
+      ? throttle(createHandler(), options.throttleMs)
+      : createHandler()) as EventHandler,
     eventNames: options?.eventNames,
-  });
+  };
 };
 
-const createResizeHandler = (dotNetRef: DotNetEventSink): ListenerRegistration => ({
+const createResizeHandler = (): ListenerRegistration => ({
   handler: throttle(() => {
     const viewport = Viewport.getWidthAndHeight();
-    invokeDotNet(dotNetRef, "WindowResize", { width: viewport[0], height: viewport[1] });
+    invokeDotNet("resize", "WindowResize", {
+      width: viewport[0],
+      height: viewport[1],
+    });
   }, defaultThrottleTicks) as EventHandler,
 });
 
 interface IWindowEventMap {
-  [key: string]: (dotNetRef: DotNetEventSink) => ListenerRegistration;
+  [key: string]: ListenerRegistration;
 }
 
 const eventMap: IWindowEventMap = {
-  click: createClickHandler,
-  contextmenu: createEventHandler("WindowContextMenu", (event: PointerEvent) => eventConvertor.toMouseEvent(event)),
-  mousedown: createEventHandler("WindowMouseDown", (event: PointerEvent) => eventConvertor.toMouseEvent(event)),
-  mouseup: createEventHandler("WindowMouseUp", (event: PointerEvent) => eventConvertor.toMouseEvent(event)),
-  mouseover: createEventHandler("WindowMouseOver", (event: MouseEvent) => eventConvertor.toMouseEvent(event), { throttleMs: defaultThrottleTicks }),
-  mouseout: createEventHandler("WindowMouseOut", (event: MouseEvent) => eventConvertor.toMouseEvent(event), { throttleMs: defaultThrottleTicks }),
-  mousemove: createEventHandler("WindowMouseMove", (event: MouseEvent) => eventConvertor.toMouseEvent(event), { throttleMs: defaultThrottleTicks }),
-  resize: createResizeHandler,
-  scroll: createArglessEventHandler("WindowScroll", { throttleMs: defaultThrottleTicks }),
-  close: createArglessEventHandler("WindowClose", { eventNames: ["beforeunload", "pagehide"] }),
-  focus: createEventHandler("WindowFocus", (event: FocusEvent) => eventConvertor.toFocusEventArgs(event)),
-  blur: createEventHandler("WindowBlur", (event: FocusEvent) => eventConvertor.toFocusEventArgs(event)),
-  touchstart: createEventHandler("WindowTouchStart", (event: TouchEvent) => eventConvertor.toTouchEventArgs(event), { throttleMs: defaultThrottleTicks }),
-  touchmove: createEventHandler("WindowTouchMove", (event: TouchEvent) => eventConvertor.toTouchEventArgs(event), { throttleMs: defaultThrottleTicks }),
-  touchend: createEventHandler("WindowTouchEnd", (event: TouchEvent) => eventConvertor.toTouchEventArgs(event), { throttleMs: defaultThrottleTicks }),
-  touchcancel: createEventHandler("WindowTouchCancel", (event: TouchEvent) => eventConvertor.toTouchEventArgs(event), { throttleMs: defaultThrottleTicks }),
-  keydown: createEventHandler("WindowKeyDown", (event: KeyboardEvent) => eventConvertor.toKeyboardEventArgs(event)),
-  keypress: createEventHandler("WindowKeyPress", (event: KeyboardEvent) => eventConvertor.toKeyboardEventArgs(event)),
-  keyup: createEventHandler("WindowKeyUp", (event: KeyboardEvent) => eventConvertor.toKeyboardEventArgs(event)),
+  click: createClickHandler(),
+  contextmenu: createEventHandler("WindowContextMenu", (event: PointerEvent) =>
+    eventConvertor.toMouseEvent(event),
+  ),
+  mousedown: createEventHandler("WindowMouseDown", (event: PointerEvent) =>
+    eventConvertor.toMouseEvent(event),
+  ),
+  mouseup: createEventHandler("WindowMouseUp", (event: PointerEvent) =>
+    eventConvertor.toMouseEvent(event),
+  ),
+  mouseover: createEventHandler(
+    "WindowMouseOver",
+    (event: MouseEvent) => eventConvertor.toMouseEvent(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  mouseout: createEventHandler(
+    "WindowMouseOut",
+    (event: MouseEvent) => eventConvertor.toMouseEvent(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  mousemove: createEventHandler(
+    "WindowMouseMove",
+    (event: MouseEvent) => eventConvertor.toMouseEvent(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  resize: createResizeHandler(),
+  scroll: createArglessEventHandler("WindowScroll", {
+    throttleMs: defaultThrottleTicks,
+  }),
+  close: createArglessEventHandler("WindowClose", {
+    eventNames: ["beforeunload", "pagehide"],
+  }),
+  focus: createEventHandler("WindowFocus", (event: FocusEvent) =>
+    eventConvertor.toFocusEventArgs(event),
+  ),
+  blur: createEventHandler("WindowBlur", (event: FocusEvent) =>
+    eventConvertor.toFocusEventArgs(event),
+  ),
+  touchstart: createEventHandler(
+    "WindowTouchStart",
+    (event: TouchEvent) => eventConvertor.toTouchEventArgs(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  touchmove: createEventHandler(
+    "WindowTouchMove",
+    (event: TouchEvent) => eventConvertor.toTouchEventArgs(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  touchend: createEventHandler(
+    "WindowTouchEnd",
+    (event: TouchEvent) => eventConvertor.toTouchEventArgs(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  touchcancel: createEventHandler(
+    "WindowTouchCancel",
+    (event: TouchEvent) => eventConvertor.toTouchEventArgs(event),
+    { throttleMs: defaultThrottleTicks },
+  ),
+  keydown: createEventHandler("WindowKeyDown", (event: KeyboardEvent) =>
+    eventConvertor.toKeyboardEventArgs(event),
+  ),
+  keypress: createEventHandler("WindowKeyPress", (event: KeyboardEvent) =>
+    eventConvertor.toKeyboardEventArgs(event),
+  ),
+  keyup: createEventHandler("WindowKeyUp", (event: KeyboardEvent) =>
+    eventConvertor.toKeyboardEventArgs(event),
+  ),
 };
 
-const addWindowEventListener = (eventName: string, listenerId: string, dotNetRef: DotNetEventSink) => {
-  const listenerMap = getListenerMap(listenerId);
-  if (listenerMap.has(eventName)) {
+const addWindowEventListener = (
+  eventName: string,
+  listenerId: string,
+  dotNetRef: DotNetEventSink,
+) => {
+  listenersDotNetRef.set(listenerId, dotNetRef);
+  if (eventListeners.has(eventName)) {
+    eventListeners.get(eventName)!.add(listenerId);
     return;
   }
-
-  const factory = eventMap[eventName];
-  if (!factory) {
-    console.warn(`event ${eventName} is not supported`);
-    return;
-  }
-
-  const registration = factory(dotNetRef);
-  listenerMap.set(eventName, registration);
-  const targetEventNames = registration.eventNames ?? [eventName];
-  for (const targetEventName of targetEventNames) {
-    window.addEventListener(targetEventName, registration.handler);
-  }
+  eventListeners.set(eventName, new Set<string>([listenerId]));
+  const listenerRegistration = eventMap[eventName];
+  window.addEventListener(eventName, listenerRegistration.handler);
 };
 
 const removeWindowEventListener = (eventName: string, listenerId: string) => {
-  const listenerMap = listenersByRef.get(listenerId);
-  const registration = listenerMap?.get(eventName);
-  if (!listenerMap || !registration) {
-    return;
+  const listenerIds = eventListeners.get(eventName);
+  if (listenerIds && listenerIds.has(listenerId)) {
+    listenerIds.delete(listenerId);
   }
-
-  const targetEventNames = registration.eventNames ?? [eventName];
-  for (const targetEventName of targetEventNames) {
-    window.removeEventListener(targetEventName, registration.handler);
-  }
-  registration.handler.cancel?.();
-  registration.dispose?.();
-  listenerMap.delete(eventName);
-  if (listenerMap.size === 0) {
-    listenersByRef.delete(listenerId);
+  if (!listenerIds || listenerIds.size === 0) {
+    eventListeners.delete(eventName);
+    const listenerRegistration = eventMap[eventName];
+    window.removeEventListener(eventName, listenerRegistration.handler);
   }
 };
 
@@ -291,7 +353,11 @@ const bindAllWindowEvent = (listenerId: string, dotNetRef: DotNetEventSink) => {
   });
 };
 
-const bindWindowEvents = (events: Array<EventInfo>, listenerId: string, dotNetRef: DotNetEventSink) => {
+const bindWindowEvents = (
+  events: Array<EventInfo>,
+  listenerId: string,
+  dotNetRef: DotNetEventSink,
+) => {
   if (!events || events.length === 0) return;
   if (events.some((e) => e.name === "*")) {
     bindAllWindowEvent(listenerId, dotNetRef);
@@ -308,7 +374,11 @@ const bindWindowEvents = (events: Array<EventInfo>, listenerId: string, dotNetRe
   }
 };
 
-const removeWindowEventsListener = (events: Array<EventInfo>, listenerId: string, _dotNetRef: DotNetEventSink) => {
+const removeWindowEventsListener = (
+  events: Array<EventInfo>,
+  listenerId: string,
+  _dotNetRef: DotNetEventSink,
+) => {
   if (!events || events.length === 0) return;
   if (events.some((e) => e.name === "*")) {
     Object.keys(eventMap).forEach((eventName) => {
@@ -326,4 +396,4 @@ const removeWindowEventsListener = (events: Array<EventInfo>, listenerId: string
   }
 };
 
-export { bindAllWindowEvent, bindWindowEvents, removeWindowEventsListener };
+export { addWindowEventListener, removeWindowEventListener, bindAllWindowEvent, bindWindowEvents, removeWindowEventsListener };

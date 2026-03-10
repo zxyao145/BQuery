@@ -125,9 +125,9 @@
             );
 
             // Bq.Events.OnResize += OnWindowResize;
-            bq.Events.OnResizeAsync += OnWindowResizeAsync;
-            bq.Events.OnScrollAsync += OnWindowScrollAsync;
-            bq.Events.OnMouseMoveAsync += OnWindowMouseMove;
+            bq.WindowEvents.OnResizeAsync += OnWindowResizeAsync;
+            bq.WindowEvents.OnScrollAsync += OnWindowScrollAsync;
+            bq.WindowEvents.OnMouseMoveAsync += OnWindowMouseMove;
 
             vpPos = await elm2.GetPositionInViewportAsync();
 

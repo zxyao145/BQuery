@@ -37,11 +37,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference 
-			Include="../BQuery.SourceGenerators/BQuery.SourceGenerators.csproj"
-			OutputItemType="Analyzer" 
-			ReferenceOutputAssembly="false" 
-			/>
+		<ProjectReference Include="../BQuery.SourceGenerators/BQuery.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 

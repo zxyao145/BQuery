@@ -62,7 +62,6 @@ public class JsModuleConstants
         public static string Focus => "focus";
     }
 
-
     public class Drag
     {
         public static readonly string ModuleName = "drag";
@@ -71,8 +70,21 @@ public class JsModuleConstants
         public static string ResetDraggableElePosition => "resetDraggableElePosition";
     }
 
-    public static string GetUserAgent => "getUserAgent";
+    public class WindowEvents
+    {
+        public static readonly string ModuleName = "windowEvents";
 
-    public static string AddWindowEventsListener => "addWindowEventsListener";
-    public static string RemoveWindowEventsListener => "removeWindowEventsListener";
+        public static string AddWindowEventsListener => "addWindowEventsListener";
+        public static string RemoveWindowEventsListener => "removeWindowEventsListener";
+
+        public static string AddWindowEventListener => "addWindowEventListener";
+        public static string RemoveWindowEventListener => "removeWindowEventListener";
+    }
+
+    public class Navigator
+    {
+        public static readonly string ModuleName = "navigator";
+
+        public static string GetUserAgent => "getUserAgent";
+    }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -74,6 +75,7 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
 
     private static List<WindowEventInfo> GetEvents(INamedTypeSymbol constantsType)
     {
+
         var events = new List<WindowEventInfo>();
 
         foreach (var member in constantsType.GetMembers().OfType<IFieldSymbol>())

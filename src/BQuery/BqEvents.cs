@@ -6,11 +6,6 @@ namespace BQuery;
 /// </summary>
 public partial class BqEvents
 {
-    private static void ReportHandlerException(Exception exception)
-    {
-        Console.Error.WriteLine($"BQuery window event handler failed: {exception}");
-    }
-
     private sealed class EventSlot<T>
     {
         private Action<T>? _syncHandlers;
@@ -30,48 +25,30 @@ public partial class BqEvents
 
         public async Task InvokeAsync(T args)
         {
-            List<Task>? pendingTasks = null;
-
             if (_syncHandlers is not null)
             {
                 foreach (var handler in _syncHandlers.GetInvocationList().Cast<Action<T>>())
                 {
-                    try
-                    {
-                        handler(args);
-                    }
-                    catch (Exception exception)
-                    {
-                        ReportHandlerException(exception);
-                    }
+                    handler(args);
                 }
             }
 
             if (_asyncHandlers is not null)
             {
-                pendingTasks = [];
+                List<Task>? pendingTasks = [];
+
                 foreach (var handler in _asyncHandlers.GetInvocationList().Cast<Func<T, Task>>())
                 {
                     pendingTasks.Add(InvokeAsyncHandler(handler, args));
                 }
-            }
 
-            if (pendingTasks is not null)
-            {
                 await Task.WhenAll(pendingTasks);
             }
         }
 
         private static async Task InvokeAsyncHandler(Func<T, Task> handler, T args)
         {
-            try
-            {
-                await handler(args);
-            }
-            catch (Exception exception)
-            {
-                ReportHandlerException(exception);
-            }
+            await handler(args);
         }
     }
 }

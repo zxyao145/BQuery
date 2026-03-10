@@ -1,40 +1,42 @@
+using static BQuery.JsModuleConstants;
+
 namespace BQuery;
 
-[GenerateJsInteropMethods(typeof(JsModuleConstants))]
-internal partial class BqConstants
-{
-}
-
-[GenerateJsInteropMethods(typeof(JsModuleConstants.Drag))]
-internal partial class DragConstants
-{
-}
-
-public class BqObject : IAsyncDisposable
+public partial class BqObject : IAsyncDisposable
 {
     private readonly DotNetObjectReference<BqEvents> _eventsReference;
     private readonly string _listenerId = Guid.NewGuid().ToString("N");
     private readonly HashSet<WindowEvent> _registeredEvents = [];
+    private readonly Dictionary<WindowEvent, int> _registeredEventCounter = [];
+
     private readonly IJSRuntime _jsRuntime;
     private bool _disposed;
 
     public BqObject(IJSRuntime jsRuntime, BqEvents events)
     {
-        _jsRuntime = jsRuntime;
+        this. _jsRuntime = jsRuntime;
+
         Viewport = new BqViewport(jsRuntime);
-        Events = events;
+        Drag = new BqDrag(jsRuntime);
+        WindowEvents = events;
+
         _eventsReference = DotNetObjectReference.Create(events);
     }
+
+    #region modules
 
     /// <summary>
     /// Viewport operation
     /// </summary>
     public BqViewport Viewport { get; }
 
+    public BqDrag Drag { get; }
+
+
     /// <summary>
     /// Window event hub for the current DI scope.
     /// </summary>
-    public BqEvents Events { get; }
+    public BqEvents WindowEvents { get; }
 
 
     public async Task AddWindowEventListeners(params WindowEvent[] windowEvents)
@@ -57,7 +59,7 @@ public class BqObject : IAsyncDisposable
         }
 
         await _jsRuntime.InvokeVoidAsync(
-            BqConstants.AddWindowEventsListenerMethod,
+            WindowEventsConstants.AddWindowEventsListenerMethod,
             eventList,
             _listenerId,
             _eventsReference);
@@ -87,11 +89,54 @@ public class BqObject : IAsyncDisposable
         }
 
         await _jsRuntime.InvokeVoidAsync(
-            BqConstants.RemoveWindowEventsListenerMethod,
+            WindowEventsConstants.RemoveWindowEventsListenerMethod,
             eventList,
             _listenerId,
             _eventsReference);
     }
+
+    public async Task AddWindowEventListener(WindowEvent windowEvent, Func<Object, Task> func)
+    {
+        if (!_registeredEventCounter.ContainsKey(windowEvent))
+        {
+            _registeredEventCounter[windowEvent] = 0;
+        }
+        _registeredEventCounter[windowEvent] += 1;
+
+
+        if (_registeredEventCounter[windowEvent] == 1)
+        {
+            await _jsRuntime.InvokeVoidAsync(
+                WindowEventsConstants.AddWindowEventListenerMethod,
+                windowEvent,
+                _listenerId,
+                _eventsReference
+                );
+        }
+    }
+
+    public async Task RemoveWindowEventListener(WindowEvent windowEvent, Func<Object, Task> func)
+    {
+        if (!_registeredEventCounter.ContainsKey(windowEvent))
+        {
+            return;
+        }
+        _registeredEventCounter[windowEvent] -= 1;
+
+
+        if (_registeredEventCounter[windowEvent] == 0)
+        {
+            await _jsRuntime.InvokeVoidAsync(
+                WindowEventsConstants.RemoveWindowEventListenerMethod,
+                windowEvent,
+                _listenerId
+            );
+        }
+    }
+
+
+    #endregion
+
 
     /// <summary>
     /// get browser useragent
@@ -99,40 +144,9 @@ public class BqObject : IAsyncDisposable
     public async Task<string> GetUserAgentAsync()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return await _jsRuntime.InvokeAsync<string>(BqConstants.GetUserAgentMethod);
+        return await _jsRuntime.InvokeAsync<string>(NavigatorConstants.GetUserAgentMethod);
     }
 
-    #region drag
-
-    /// <summary>
-    /// bind drag for <param name="element">element</param> 
-    /// </summary>
-    public async Task BindDragAsync(ElementReference element, DragOptions? options = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        await _jsRuntime.InvokeVoidAsync(DragConstants.BindDragMethod, element, options);
-    }
-
-    /// <summary>
-    /// remove drag binding for the target element or its configured drag trigger
-    /// </summary>
-    public async Task RemoveDragAsync(ElementReference element, DragOptions? options = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        await _jsRuntime.InvokeVoidAsync(DragConstants.RemoveDraggableMethod, GetDragTrigger(element, options));
-    }
-
-    /// <summary>
-    /// reset drag position for the target element or its configured drag trigger
-    /// </summary>
-    public async Task ResetDragPositionAsync(ElementReference element, DragOptions? options = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        await _jsRuntime.InvokeVoidAsync(DragConstants.ResetDraggableElePositionMethod, GetDragTrigger(element, options));
-    }
 
     /// <summary>
     /// Disposes the JavaScript module reference and unregisters scoped window listeners.
@@ -151,7 +165,7 @@ public class BqObject : IAsyncDisposable
             if (_registeredEvents.Count > 0)
             {
                 await _jsRuntime.InvokeVoidAsync(
-                    BqConstants.RemoveWindowEventsListenerMethod,
+                    WindowEventsConstants.RemoveWindowEventsListenerMethod,
                     _registeredEvents.ToArray(),
                     _listenerId,
                     _eventsReference);
@@ -165,17 +179,10 @@ public class BqObject : IAsyncDisposable
         _eventsReference.Dispose();
     }
 
-    private static ElementReference GetDragTrigger(ElementReference element, DragOptions? options)
-    {
-        return options?.DragElement ?? element;
-    }
-
     private static bool CanIgnoreDisposeInteropException(Exception exception)
     {
         return exception is JSDisconnectedException
             or ObjectDisposedException
             or TaskCanceledException;
     }
-
-    #endregion
 }

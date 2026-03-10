@@ -3,19 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace BQuery;
 
-[GenerateJsInteropMethods(typeof(JsModuleConstants.Dom))]
-internal partial class DomConstants
-{
-
-}
-
-
-[GenerateJsInteropMethods(typeof(JsModuleConstants.ElementExtensions))]
-internal partial class ElementConstants
-{
-
-}
-
 [ExcludeFromCodeCoverage]
 public static class ElementReferenceExtensions
 {

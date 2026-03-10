@@ -15,16 +15,28 @@ namespace BQuery.Sample.Common.Pages
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
-            { 
-              bq.Events.OnMouseMoveAsync += Events_OnMouseMove;
-              bq.Events.OnClickAsync += Events_OnClick;
-              bq.Events.OnDoubleClickAsync += Events_OnDoubleClick;
-              bq.Events.OnMouseDownAsync += Events_OnMouseDown;
-              bq.Events.OnMouseUpAsync += Events_OnMouseUp;
-              bq.Events.OnKeyDownAsync += Events_OnKeyDown;
-              bq.Events.OnBlurAsync += Events_OnBlur;
-              bq.Events.OnFocusAsync += Events_OnFocus;
-              bq.Events.OnTouchStartAsync += Events_OnTouchStart;
+            {
+              await bq.AddWindowEventListeners(
+                WindowEvent.OnMouseMove,
+                WindowEvent.OnClick,
+                WindowEvent.OnDoubleClick,
+                WindowEvent.OnMouseDown,
+                WindowEvent.OnMouseUp,
+                WindowEvent.OnKeyDown,
+                WindowEvent.OnBlur,
+                WindowEvent.OnFocus,
+                WindowEvent.OnTouchStart
+              );
+              bq.WindowEvents.OnMouseMoveAsync += Events_OnMouseMove;
+              bq.WindowEvents.OnClickAsync += Events_OnClick;
+              bq.WindowEvents.OnDoubleClickAsync += Events_OnDoubleClick;
+              bq.WindowEvents.OnMouseDownAsync += Events_OnMouseDown;
+              bq.WindowEvents.OnMouseUpAsync += Events_OnMouseUp;
+              bq.WindowEvents.OnKeyDownAsync += Events_OnKeyDown;
+              bq.WindowEvents.OnBlurAsync += Events_OnBlur;
+              bq.WindowEvents.OnFocusAsync += Events_OnFocus;
+              bq.WindowEvents.OnTouchStartAsync += Events_OnTouchStart;
+
             }
             await base.OnAfterRenderAsync(firstRender);
         }

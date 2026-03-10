@@ -11,28 +11,30 @@ import { debounce, throttle } from "./module/common";
 import * as domHelper from "./module/domHelper";
 const version = "10.0.0";
 
-
 const bQuery = {
   version: version,
 
-  domHelper: domHelper,
   viewport: Viewport,
-  elementExtensions: htmlElementHelper,
   drag: dragHelper,
+  windowEvents: {
+    addWindowEventsListener: bindWindowEvents,
+    removeWindowEventsListener,
+  },
+  
+  domHelper: domHelper,
+  elementExtensions: htmlElementHelper,
 
-  getUserAgent: () => {
-    return navigator.userAgent;
+  navigator: {
+    getUserAgent: () => {
+      return navigator.userAgent;
+    },
   },
 
   throttle,
   debounce,
-
-  addWindowEventsListener: bindWindowEvents,
-  removeWindowEventsListener,
-
- 
 };
 
+console.log("bQuery Init");
 window.bQuery = bQuery;
 
 export function getBq() {
@@ -46,5 +48,3 @@ export function getViewport() {
 export function getElementExtensions() {
   return htmlElementHelper;
 }
-
-
