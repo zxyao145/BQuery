@@ -1,151 +1,141 @@
 ﻿import { getClassStaticFunc } from "./common";
 
 class ElementWidthAndHeightHelper {
-    //#region width height
+	//#region width height
 
-    public static getWidth(element: HTMLElement, outer: boolean) {
-        if (outer) {
-            return element.offsetWidth;
-        } else {
-            return element.clientWidth;
-        }
-    };
+	public static getWidth(element: HTMLElement, outer: boolean) {
+		if (outer) {
+			return element.offsetWidth;
+		} else {
+			return element.clientWidth;
+		}
+	}
 
-    public static getHeight(element: HTMLElement, outer: boolean) {
-        if (outer) {
-            return element.offsetHeight;
-        } else {
-            return element.clientHeight;
-        }
-    };
+	public static getHeight(element: HTMLElement, outer: boolean) {
+		if (outer) {
+			return element.offsetHeight;
+		} else {
+			return element.clientHeight;
+		}
+	}
 
-    public static getWidthAndHeight = (element: HTMLElement, outer: boolean) => {
-        return [
-            this.getWidth(element, outer),
-            this.getHeight(element, outer)
-        ];
-    };
+	public static getWidthAndHeight = (element: HTMLElement, outer: boolean) => {
+		return [this.getWidth(element, outer), this.getHeight(element, outer)];
+	};
 
-    //#endregion
+	//#endregion
 }
 
 class ElementScrollHelper {
+	//#region element's Scroll Width and Height
 
-    //#region element's Scroll Width and Height
+	public static getScrollWidth(element: HTMLElement) {
+		return element.scrollWidth;
+	}
 
-    public static getScrollWidth(element: HTMLElement) {
-        return element.scrollWidth;
-    }
+	public static getScrollHeight(element: HTMLElement) {
+		return element.scrollHeight;
+	}
 
-    public static getScrollHeight(element: HTMLElement) {
-        return element.scrollHeight;
-    }
+	public static getScrollWidthAndHeight(element: HTMLElement) {
+		return [
+			ElementScrollHelper.getScrollWidth(element),
+			ElementScrollHelper.getScrollHeight(element),
+		];
+	}
 
-    public static getScrollWidthAndHeight(element: HTMLElement) {
-        return [
-            this.getScrollWidth(element),
-            this.getScrollHeight(element)
-        ];
-    }
+	//#endregion
 
-    //#endregion 
+	//#region Scroll Left and top
 
-    //#region Scroll Left and top
+	public static getScrollLeft(element: HTMLElement) {
+		return element.scrollLeft;
+	}
 
-    public static getScrollLeft(element: HTMLElement) {
-        return element.scrollLeft;
-    }
+	public static getScrollTop(element: HTMLElement) {
+		return element.scrollTop;
+	}
 
-    public static getScrollTop(element: HTMLElement) {
-        return element.scrollTop;
-    }
+	public static getScrollLeftAndTop(element: HTMLElement) {
+		return [
+			ElementScrollHelper.getScrollLeft(element),
+			ElementScrollHelper.getScrollTop(element),
+		];
+	}
 
-    public static getScrollLeftAndTop(element: HTMLElement) {
-        return [
-            this.getScrollLeft(element),
-            this.getScrollTop(element)
-        ];
-    }
-
-    //#endregion
-
+	//#endregion
 }
 
 class ElementPositionHelper {
+	//#region element's position
 
-    //#region element's position
+	public static getPositionInViewport(element: HTMLElement) {
+		var rect = element.getBoundingClientRect();
+		return {
+			x: rect.left,
+			y: rect.top,
+			width: rect.width,
+			height: rect.height,
+		};
+	}
 
-    public static getPositionInViewport(element: HTMLElement) {
-        var rect = element.getBoundingClientRect();
-        return {
-            x: rect.left,
-            y: rect.top,
-            width: rect.width,
-            height: rect.height
-        }
-    };
+	public static getElementLeftInDoc(element: HTMLElement) {
+		var actualLeft = element.offsetLeft;
+		var current = element.offsetParent as HTMLElement;
 
-    public static getElementLeftInDoc(element: HTMLElement) {
-        var actualLeft = element.offsetLeft;
-        var current = element.offsetParent as HTMLElement;
+		while (typeof current !== "undefined" && current !== null) {
+			actualLeft += current.offsetLeft;
+			current = current.offsetParent as HTMLElement;
+		}
 
-        while (typeof current !== "undefined" && current !== null) {
-            actualLeft += current.offsetLeft;
-            current = current.offsetParent as HTMLElement;
-        }
+		return actualLeft;
+	}
 
-        return actualLeft;
-    }
+	public static getElementTopInDoc(element: HTMLElement) {
+		var actualTop = element.offsetTop;
+		var current = element.offsetParent as HTMLElement;
+		while (typeof current !== "undefined" && current !== null) {
+			actualTop += current.offsetTop;
+			current = current.offsetParent as HTMLElement;
+		}
 
+		return actualTop;
+	}
 
-    public static getElementTopInDoc(element: HTMLElement) {
-        var actualTop = element.offsetTop;
-        var current = element.offsetParent as HTMLElement;
-        while (typeof current !== "undefined" && current !== null) {
-            actualTop += current.offsetTop;
-            current = current.offsetParent as HTMLElement;
-        }
+	public static getPositionInDoc(element: HTMLElement) {
+		if (!element) {
+			console.warn("getPositionInDoc: element is null or undefined");
+			return {
+				x: 0,
+				y: 0,
+				width: 0,
+				height: 0,
+			};
+		}
+		var rect = {
+			x: ElementPositionHelper.getElementLeftInDoc(element),
+			y: ElementPositionHelper.getElementTopInDoc(element),
+			width: ElementWidthAndHeightHelper.getWidth(element, true),
+			height: ElementWidthAndHeightHelper.getHeight(element, true),
+		};
+		return rect;
+	}
 
-        return actualTop;
-    }
-
-    public static getPositionInDoc(element: HTMLElement) {
-        if(!element){
-            console.warn("getPositionInDoc: element is null or undefined");
-            return {
-              x: 0,
-              y: 0,
-              width: 0,
-              height: 0,
-            };
-        }
-        var rect = {
-            x: this.getElementLeftInDoc(element),
-            y: this.getElementTopInDoc(element),
-            width: ElementWidthAndHeightHelper.getWidth(element, true),
-            height: ElementWidthAndHeightHelper.getHeight(element, true)
-        };
-        return rect;
-    };
-
-    //#endregion position
-
+	//#endregion position
 }
 
 class ElementHelper {
-
-    // [obsolete]: Blazor has a native implementation from .net6
-    public static focus(element: HTMLElement) {
-        element.focus();
-    }
+	// [obsolete]: Blazor has a native implementation from .net6
+	public static focus(element: HTMLElement) {
+		element.focus();
+	}
 }
-
 
 const htmlElementHelper = {
-    ...getClassStaticFunc(ElementWidthAndHeightHelper),
-    ...getClassStaticFunc(ElementScrollHelper),
-    ...getClassStaticFunc(ElementPositionHelper),
-    ...getClassStaticFunc(ElementHelper),
-}
+	...getClassStaticFunc(ElementWidthAndHeightHelper),
+	...getClassStaticFunc(ElementScrollHelper),
+	...getClassStaticFunc(ElementPositionHelper),
+	...getClassStaticFunc(ElementHelper),
+};
 
 export default htmlElementHelper;

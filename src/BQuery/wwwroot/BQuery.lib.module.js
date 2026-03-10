@@ -9,9 +9,9 @@ function loadScriptAndStyle() {
     }
 
     beforeStartCalled = true;
-    if (!document.querySelector('[src$="_content/BQuery/bQuery.min.js"]')) {
+    if (!document.querySelector('[src$="_content/BQuery/dist/bQuery.min.js"]')) {
         var customScript = document.createElement('script');
-        customScript.setAttribute('src', '_content/BQuery/bQuery.min.js');
+        customScript.setAttribute('src', '_content/BQuery/dist/bQuery.min.js');
         document.body.appendChild(customScript);
     }
 }

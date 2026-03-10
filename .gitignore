@@ -343,3 +343,4 @@ healthchecksdb
 /src/BQuery/wwwroot/dist/
 !/Sample/BlazorAppAuto/BlazorAppAuto/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css
 !/Sample/BlazorAppAuto/BlazorAppAuto/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map
+bQuery.min.js

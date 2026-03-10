@@ -47,7 +47,6 @@ public readonly struct WindowEvent : IEquatable<WindowEvent>
     }
 
     #region events
-    internal static readonly WindowEvent All = new("*");
 
     #region Mouse Event
 
@@ -117,4 +116,3 @@ public readonly struct WindowEvent : IEquatable<WindowEvent>
 
     #endregion
 }
-

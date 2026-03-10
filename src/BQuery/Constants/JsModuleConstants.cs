@@ -33,6 +33,10 @@ public class JsModuleConstants
         public static readonly string ModuleName = "domHelper";
 
         public static string Attr => "attr";
+        public static string SetAttr => "setAttr";
+        public static string GetAttr => "getAttr";
+        public static string RemoveAttr => "removeAttr";
+
         public static string AddCls => "addCls";
         public static string RemoveCls => "removeCls";
         public static string Css => "css";

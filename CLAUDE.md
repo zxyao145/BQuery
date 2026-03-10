@@ -37,14 +37,15 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 
 | File | Purpose |
 |------|---------|
-| `Bq.cs` | Main scoped service exposing `Events`, `Viewport`, drag APIs, and window listener registration |
-| `BqEvents.cs` | Window event hub - partial class augmented by source generator |
+| `Bq.cs` | Main scoped service exposing `WindowEvents`, `Viewport`, `Drag`, and window listener registration |
+| `BqEvents.cs` | Window event hub - partial class augmented by source generator; manages per-scope event listeners |
 | `BqViewport.cs` | Viewport measurement APIs (width, height, scroll positions) |
+| `BqDrag.cs` | Drag-and-drop functionality binding |
 | `ElementReferenceExtensions.cs` | Extension methods on `ElementReference` for DOM operations |
 | `Constants/JsModuleConstants.cs` | JavaScript function name constants for interop calls |
 | `Constants/WindowEvents.cs` | `WindowEvent` struct with event definitions decorated with `[WindowEventHandler]` |
 | `SourceGeneration/` | Source-generator attributes consumed by the main library |
-| `AspNetExtensions/` | `UseBQuery()` startup extensions for WASM and Server hosting |
+| `ServiceExtension.cs` | `AddBQuery()` DI registration extension |
 
 ### Source Generators (`src/BQuery.SourceGenerators/`)
 
@@ -71,6 +72,13 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 2. **JS → C#**: JavaScript calls `DotNetObjectReference.invokeMethodAsync` on the scoped `BqEvents` instance, which raises the matching .NET events
 
 The JavaScript module path is `./_content/BQuery/dist/bQuery.min.mjs` (ES module format).
+
+### Scoped Service Lifecycle
+
+`Bq` and `BqEvents` are registered as **scoped** services. Each scope receives:
+- A unique `_listenerId` (GUID) for tracking event subscriptions
+- An independent `EventSlots` dictionary for event handler management
+- Automatic cleanup via `IAsyncDisposable` when the scope ends
 
 ## Key Patterns
 
