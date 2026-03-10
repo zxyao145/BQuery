@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -145,11 +144,15 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
         builder.Append("public partial class ").Append(target.ClassSymbol.Name).AppendLine();
         builder.AppendLine("{");
 
-        foreach (var windowEvent in target.Events)
+        builder.AppendLine("    private readonly Dictionary<WindowEvent, EventSlot> _eventSlots = new()");
+        builder.AppendLine("    {");
+
+        for (var i = 0; i < target.Events.Count; i++)
         {
-            AppendField(builder, windowEvent, typeFormat);
+            AppendField(builder, target.Events[i], typeFormat, i == target.Events.Count - 1);
         }
 
+        builder.AppendLine("    };");
         builder.AppendLine();
 
         foreach (var windowEvent in target.Events)
@@ -161,9 +164,11 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private static void AppendField(StringBuilder builder, WindowEventInfo windowEvent, SymbolDisplayFormat typeFormat)
+    private static void AppendField(StringBuilder builder, WindowEventInfo windowEvent, SymbolDisplayFormat typeFormat, bool isLast)
     {
-        builder.Append("    private readonly EventSlot<")
+        builder.Append("        [WindowEvent.")
+            .Append(windowEvent.MemberName)
+            .Append("] = new EventSlot<")
             .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat));
 
         if (windowEvent.ArgumentType2 is not null)
@@ -172,9 +177,14 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
                 .Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat));
         }
 
-        builder.Append("> ")
-            .Append(windowEvent.SlotName)
-            .AppendLine(" = new();");
+        builder.Append(">()");
+
+        if (!isLast)
+        {
+            builder.Append(",");
+        }
+
+        builder.AppendLine();
     }
 
     private static void AppendMembers(StringBuilder builder, WindowEventInfo windowEvent, SymbolDisplayFormat typeFormat)
@@ -193,8 +203,31 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
             .AppendLine("    /// </summary>");
         builder.Append("    public event ").Append(eventType).Append("? ").Append(windowEvent.MemberName).AppendLine();
         builder.AppendLine("    {");
-        builder.Append("        add => ").Append(windowEvent.SlotName).AppendLine(".Sync += value;");
-        builder.Append("        remove => ").Append(windowEvent.SlotName).AppendLine(".Sync -= value;");
+        builder.Append("        add => ((EventSlot<")
+            .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat));
+
+        if (windowEvent.ArgumentType2 is not null)
+        {
+            builder.Append(", ")
+                .Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat));
+        }
+
+        builder.Append(">)_eventSlots[WindowEvent.")
+            .Append(windowEvent.MemberName)
+            .AppendLine("]).Sync += value;");
+
+        builder.Append("        remove => ((EventSlot<")
+            .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat));
+
+        if (windowEvent.ArgumentType2 is not null)
+        {
+            builder.Append(", ")
+                .Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat));
+        }
+
+        builder.Append(">)_eventSlots[WindowEvent.")
+            .Append(windowEvent.MemberName)
+            .AppendLine("]).Sync -= value;");
         builder.AppendLine("    }");
         builder.AppendLine();
         builder.Append("    /// <summary>").AppendLine();
@@ -204,8 +237,31 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
             .AppendLine("    /// </summary>");
         builder.Append("    public event ").Append(asyncEventType).Append("? ").Append(windowEvent.MemberName).AppendLine("Async");
         builder.AppendLine("    {");
-        builder.Append("        add => ").Append(windowEvent.SlotName).AppendLine(".Async += value;");
-        builder.Append("        remove => ").Append(windowEvent.SlotName).AppendLine(".Async -= value;");
+        builder.Append("        add => ((EventSlot<")
+            .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat));
+
+        if (windowEvent.ArgumentType2 is not null)
+        {
+            builder.Append(", ")
+                .Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat));
+        }
+
+        builder.Append(">)_eventSlots[WindowEvent.")
+            .Append(windowEvent.MemberName)
+            .AppendLine("]).Async += value;");
+
+        builder.Append("        remove => ((EventSlot<")
+            .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat));
+
+        if (windowEvent.ArgumentType2 is not null)
+        {
+            builder.Append(", ")
+                .Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat));
+        }
+
+        builder.Append(">)_eventSlots[WindowEvent.")
+            .Append(windowEvent.MemberName)
+            .AppendLine("]).Async -= value;");
         builder.AppendLine("    }");
         builder.AppendLine();
         builder.AppendLine("    [JSInvokable]");
@@ -214,13 +270,23 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
         if (windowEvent.ArgumentType2 is null)
         {
             builder.Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat)).Append(" e");
-            builder.Append(") => ").Append(windowEvent.SlotName).AppendLine(".InvokeAsync(e);");
+            builder.Append(") => ((EventSlot<")
+                .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat))
+                .Append(">)_eventSlots[WindowEvent.")
+                .Append(windowEvent.MemberName)
+                .AppendLine("]).InvokeAsync(e);");
         }
         else
         {
             builder.Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat)).Append(" arg1, ");
             builder.Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat)).Append(" arg2");
-            builder.Append(") => ").Append(windowEvent.SlotName).AppendLine(".InvokeAsync(arg1, arg2);");
+            builder.Append(") => ((EventSlot<")
+                .Append(windowEvent.ArgumentType1.ToDisplayString(typeFormat))
+                .Append(", ")
+                .Append(windowEvent.ArgumentType2.ToDisplayString(typeFormat))
+                .Append(">)_eventSlots[WindowEvent.")
+                .Append(windowEvent.MemberName)
+                .AppendLine("]).InvokeAsync(arg1, arg2);");
         }
 
         builder.AppendLine();
@@ -269,14 +335,12 @@ public sealed class WindowEventsGenerator : IIncrementalGenerator
             ArgumentType1 = argumentType1;
             ArgumentType2 = argumentType2;
             InvocationSuffix = memberName.StartsWith("On", StringComparison.Ordinal) ? memberName.Substring(2) : memberName;
-            SlotName = "_" + char.ToLowerInvariant(InvocationSuffix[0]) + InvocationSuffix.Substring(1);
         }
 
         public string MemberName { get; }
 
         public string InvocationSuffix { get; }
 
-        public string SlotName { get; }
 
         public ITypeSymbol ArgumentType1 { get; }
 
