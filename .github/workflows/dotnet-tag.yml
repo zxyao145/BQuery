@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -21,12 +21,12 @@ jobs:
           10.0.x
 
     - name: Setup NodeJs
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         node-version: 18
 
     - name: Pnpm install
-      run: cd BQuery/wwwroot/ && pnpm install
+      run: cd src/BQuery/wwwroot/ && pnpm install
       
     - name: Restore dependencies
       run: dotnet restore
@@ -42,7 +42,7 @@ jobs:
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
     - name: Package
-      run: dotnet pack BQuery/BQuery.csproj --configuration Release --output "./release/" -p:PackageVersion=${{ steps.version.outputs.VERSION }}
+      run: dotnet pack src/BQuery/BQuery.csproj --configuration Release --output "./release/" -p:PackageVersion=${{ steps.version.outputs.VERSION }}
     
     - name: Publish 
       run: dotnet nuget push ./release/*.nupkg --api-key ${{secrets.PUBLISHKEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
