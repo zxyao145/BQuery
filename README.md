@@ -63,7 +63,6 @@ Add this script to your host page:
 ```
 
 The repository samples use the UMD build (`bQuery.min.js`).  
-An ES module build is also published at `_content/BQuery/dist/bQuery.min.mjs`.
 
 #### WASM example (`wwwroot/index.html`)
 

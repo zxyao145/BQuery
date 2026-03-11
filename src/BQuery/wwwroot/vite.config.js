@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       lib: {
         entry: './src/index.ts',
         name: 'bQuery',
-        formats: ['es', 'umd'],
+        formats: ['umd'],
         fileName: (format) => {
           if(format === "es") {
             return "bQuery.min.mjs";

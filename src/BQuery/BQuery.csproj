@@ -46,6 +46,7 @@
 			$(DefaultItemExcludes);
 			wwwroot\src\**;
 			wwwroot\package.json;
+			wwwroot\biome.json;
 			wwwroot\pnpm-lock.yaml;
 			wwwroot\tsconfig.json;
 			wwwroot\vite.config.js;
@@ -57,6 +58,8 @@
 
 		<ItemGroup>
 			<None Include="wwwroot\bQuery.min.js" />
+			<None Include="wwwroot\dist\bQuery.min.js" />
+			<None Include="wwwroot\dist\BQuery.lib.module.js" />
 		</ItemGroup>
 	</Target>
 </Project>

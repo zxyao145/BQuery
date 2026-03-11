@@ -2,7 +2,6 @@
 
 public class JsModuleConstants
 {
-    public const string MJS = "./_content/BQuery/dist/bQuery.min.mjs";
     public static string GetMethod(params string[] keys)
     {
         return string.Join(".", keys);
