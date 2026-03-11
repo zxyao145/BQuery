@@ -22,6 +22,21 @@ It provides:
 | 3.x | .NET 6 |
 | 2.x | .NET 5 |
 
+## Breaking changes (4.0.0)
+
+If you're upgrading from 3.x, please review the following API and platform changes:
+
+- **Target frameworks changed**: BQuery 4.x targets **.NET 8.0** and **.NET 10.0** only. .NET 6 is no longer supported.
+- **Startup extensions removed**: the old `AspNetExtensions` package surface (for example `UseBQuery(...)`) was removed. Use DI registration with `AddBQuery()` and load the static asset from `_content/BQuery/dist/...`.
+- **Resize callback payload changed**: resize handlers now use `ResizeEventArgs` (with named properties like width/height) instead of positional payload patterns.
+
+### Upgrade checklist
+
+1. Update your app TFM to .NET 8+.
+2. Replace legacy startup extension usage with `builder.Services.AddBQuery();`.
+3. Ensure your host page (or startup script flow) loads `_content/BQuery/dist/bQuery.min.js`.
+4. Update resize event handlers to `OnResizeAsync(ResizeEventArgs args)` / `OnResize(ResizeEventArgs args)`.
+
 ## Install
 
 ```bash
