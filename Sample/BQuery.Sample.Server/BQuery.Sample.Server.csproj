@@ -4,7 +4,6 @@
 		<TargetFramework>net10.0</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\BQuery\BQuery.csproj" />
 		<ProjectReference Include="..\BQuery.Sample.Common\BQuery.Sample.Common.csproj" />
 	</ItemGroup>
 </Project>

@@ -1,242 +1,183 @@
-#  1.BQuery
+# BQuery
 
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/BQuery)](https://www.nuget.org/packages/BQuery/)
 
-An extended library of interaction between blazor and js. And The name mimics jQuery.  Now upgrade to .NET 6.
+BQuery is a Blazor helper library for JavaScript interop (inspired by jQuery).
 
-[Live demo]( https://zxyao145.github.io/BQuery/)
+It provides:
 
-## 1.1. Support
+- Element DOM helpers (`Attr`, class/style helpers)
+- Element measurement and position APIs
+- Viewport measurement APIs
+- Window event binding with .NET callbacks
+- Element drag helpers
 
-1. WASM （friendly）
-2. Server mode：（not friendly）
-   1. ServerPrerendered
-   2. Server
+[Live demo](https://zxyao145.github.io/BQuery/)
 
-## 1.2. version
+## Target Frameworks
 
-| BQuery version | .NET version |
-| -------------- | ------------ |
-| 3.x            | .NET 6       |
-| 2.x            | .NET 5       |
+| BQuery | .NET |
+| --- | --- |
+| 4.x | .NET 8.0 / .NET 10.0 |
+| 3.x | .NET 6 |
+| 2.x | .NET 5 |
 
-# 2.Usage
+## Breaking changes (4.0.0)
 
-## 2.1.For WASM
+If you're upgrading from 3.x, please review the following API and platform changes:
 
-### 2.1.1.Add js to wwwroot/index.html
+- **Target frameworks changed**: BQuery 4.x targets **.NET 8.0** and **.NET 10.0** only. .NET 6 is no longer supported.
+- **Startup extensions removed**: the old `AspNetExtensions` package surface (for example `UseBQuery(...)`) was removed. Use DI registration with `AddBQuery()` and load the static asset from `_content/BQuery/dist/...`.
+- **Resize callback payload changed**: resize handlers now use `ResizeEventArgs` (with named properties like width/height) instead of positional payload patterns.
 
-```js
-<script src="_content/BQuery/bQuery.min.js"></script>
+### Upgrade checklist
+
+1. Update your app TFM to .NET 8+.
+2. Replace legacy startup extension usage with `builder.Services.AddBQuery();`.
+3. Ensure your host page (or startup script flow) loads `_content/BQuery/dist/bQuery.min.js`.
+4. Update resize event handlers to `OnResizeAsync(ResizeEventArgs args)` / `OnResize(ResizeEventArgs args)`.
+
+## Install
+
+```bash
+dotnet add package BQuery
 ```
 
-### 2.1.2.Modify the `Main ` method in Program.cs 
+## Quick Start
 
-change 
+### 1. Register services
 
-```c#
-await builder.Build().RunAsync();
+```csharp
+builder.Services.AddBQuery();
 ```
 
-to
+> [!NOTE]
+> If using **Interactive Auto** render mode, the service needs to be registered in both the `App` and `App.Client` simultaneously.
 
-```c#
-await builder.Build()
-+	.UseBQuery()
-	.RunAsync();
+### 2. Load the script
+
+Add this script to your host page:
+
+```html
+<script src="_content/BQuery/dist/bQuery.min.js"></script>
 ```
 
-### 2.1.3.using namespace
+The repository samples use the UMD build (`bQuery.min.js`).  
+An ES module build is also published at `_content/BQuery/dist/bQuery.min.mjs`.
 
-```c#
-using BQuery;
+#### WASM example (`wwwroot/index.html`)
+
+```html
+<script src="_content/BQuery/dist/bQuery.min.js"></script>
+<script src="_framework/blazor.webassembly.js"></script>
 ```
 
+#### Server example (`Pages/_Host.cshtml`)
 
-
-See "**Sample\BQuery.Sample.Wasm**" and "**Sample\BQuery.Sample.Common**" for details.
-
-
-
-## 2.2.For server side
-
-### 2.2.1Add js to Pages/_host.html
-
-In server side, you must manually initialize bquery as follows:
-
-```js
-<script src="_framework/blazor.server.js" autostart="false"></script>
-<script src="_content/BQuery/bQuery.min.js"></script>
-<script>
-    function start() {
-        Blazor.start({})
-            .then(() => {
-                window.bqInit();
-            });
-    }
-    start();
-</script>
+```html
+<script src="_content/BQuery/dist/bQuery.min.js"></script>
+<script src="_framework/blazor.server.js"></script>
 ```
 
-**Please note** that the `blazor.server.js` set the property of  **`autostart="false"`**.
+#### Auto Mode (App.razor)
 
-
-
-### 2.2.2.Modify `App.razor`
-
-To get the `IJSRuntime`  in the context of mounting DOM, you must add or modify the partial class `App` file **App.razor.cs**, and inject `IJSRuntime` as follows:
-
+```html
+<script src="_content/BQuery/dist/bQuery.min.js"></script>
+<script src="@Assets["_framework/blazor.web.js"]"></script>
 ```
-public partial class App
-{
-    [Inject]
-    public IJSRuntime JsRuntime { get; set; }
 
+### 3. Use `Bq` in components
 
-    protected override void OnAfterRender(bool firstRender)
+```razor
++ @inject Bq bq
+@implements IAsyncDisposable
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
         {
-            Bq.JsRuntime = JsRuntime;
-            base.OnAfterRender(firstRender);
+            return;
         }
+
+        await bq.AddWindowEventListeners(WindowEvent.OnResize, WindowEvent.OnScroll);
+        bq.WindowEvents.OnResizeAsync += OnResizeAsync;
+    }
+
+    private Task OnResizeAsync(ResizeEventArgs args)
+    {
+        Console.WriteLine($"Viewport: {args.Width} x {args.Height}");
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {   
+        // If listening for Window events
+        await bq.RemoveWindowEventListeners();
     }
 }
 ```
 
-### 2.2.3.Modify the `Main ` method in Program.cs 
+## Common Usage
 
-change 
+### Viewport
 
-```c#
-CreateHostBuilder(args).Build().Run();
+```csharp
+var width = await bq.Viewport.GetWidthAsync();
+var height = await bq.Viewport.GetHeightAsync();
+var scrollTop = await bq.Viewport.GetScrollTopAsync();
 ```
 
-to
+### Element APIs (`ElementReference` extensions)
 
-```c#
-CreateHostBuilder(args).Build()
-+                .UseBQuery()
-                .Run();
+```csharp
+var size = await element.GetWidthAndHeightAsync();
+var docPos = await element.GetPositionInDocAsync();
+
+await element.AddCls("is-active");
+await element.Css("display", "none");
+await element.RemoveCls("is-active");
 ```
 
-### 2.2.4.using namespace
+### Drag
 
-```c#
-using BQuery;
+```csharp
+await bq.Drag.BindDragAsync(dialog, new DragOptions
+{
+    InViewport = true,
+    DragElement = dialogHeader
+});
+
+await bq.Drag.ResetDragPositionAsync(dialog, new DragOptions
+{
+    DragElement = dialogHeader
+});
+
+await bq.Drag.RemoveDragAsync(dialog, new DragOptions
+{
+    DragElement = dialogHeader
+});
 ```
 
-See "**Sample\BQuery.Sample.Server**" and "**Sample\BQuery.Sample.Common**" for details.
+### User agent
 
+```csharp
+var ua1 = await bq.GetUserAgentAsync();
+var ua2 = await jsRuntime.GetUserAgentAsync(); // IJSRuntime extension
+```
 
+## API Docs
 
-# 3.Gif
+- C# API: [API.md](./API.md)
+- TypeScript API: [TS-API.md](./TS-API.md)
 
-Window on resize
+## Samples
 
-![onrezise](./files/onresize.gif)
+- `Sample/BQuery.Sample.Wasm`
+- `Sample/BQuery.Sample.Server`
+- `Sample/BQuery.Sample.Common`
+- `Sample/BlazorAppAuto`
 
-Window on scroll
-
-![onscroll](./files/scroll.gif)
-
-# 4.Api
-
-- C# [API](./API.md)
-
-- TS [TS API](./TS-API.md)
-
-## 4.1.`Bq Static member (not contains extension methods)`
-
-| **name**                           | describe                    | return    |
-| ---------------------------------- | --------------------------- | --------- |
-| `Task<string> GetUserAgentAsync()` | get browser ueragent        | useragent |
-| `Viewport`                         | See **Bq.Viewport.*** below | --        |
-| `Events`                           | See **Bq.Events.*** below   | --        |
-
-## 4.2.`Bq.Viewport.*`
-
-| name                                            | describe                             | return          |
-| ----------------------------------------------- | ------------------------------------ | --------------- |
-| `Task<double> Bq.Viewport.GetWidthAsync()`      | get viewport width                   | width           |
-| `Task<double> GetHeightAsync()`                 | get viewport height                  | height          |
-| `Task<double[]> GetWidthAndHeightAsync()`       | get viewport width and height        | [width, height] |
-| `Task<double> GetScrollWidthAsync()`            | get viewport scroll width            | width           |
-| `GetScrollHeightAsync()`                        | get viewport scroll height           | height          |
-| `Task<double[]> GetScrollWidthAndHeightAsync()` | get viewport scroll width and height | [width, height] |
-| `Task<double> GetScrollLeftAsync()`             | get viewport scroll left             | left            |
-| `Task<double> GetScrollTopAsync()`              | get viewport scroll top              | top             |
-| `Task<double[]> GetScrollLeftAndTopAsync()`     | get viewport scroll left and top     | [left, top]     |
-
-## 4.3.ElementReference Extension methods
-
-note: all the method not show the first patameter:  *this ElementReference element*
-
-| name                                                         | describe                            | parameters                                       | return             |
-| ------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------ | ------------------ |
-| `Task<double> GetWidthAsync(bool isOuter = true)`            | get element width                   | the width is outerwidth or innerwidth            | width              |
-| `Task<double> GetHeightAsync(bool isOuter = true)`           | get element height                  | the height is outerheight or innerheight         | height             |
-| `Task<double[]> GetWidthAndHeightAsync(bool isOuter = true)` | get element width and height        | the width and height is outerwidth or innerwidth | [width, height]    |
-| `Task<double> GetScrollWidthAsync()`                         | get element scroll width            | --                                               | width              |
-| `Task<double> GetScrollHeightAsync()`                        | get element scroll height           | --                                               | height             |
-| `Task<double[]> GetScrollWidthAndHeightAsync(this ElementReference element)` | get element scroll width and height | --                                               | [width, height]    |
-| `Task<double> GetScrollLeftAsync()`                          | get element scroll left             | --                                               | left               |
-| `Task<double> GetScrollTopAsync()`                           | get element scroll top              | --                                               | top                |
-| `Task<double[]> GetScrollLeftAndTopAsync()`                  | get element scroll left and top     | --                                               | [left, top]        |
-| `Task<ElePosition> GetPositionInViewportAsync()`             | get element position in Viewport    | --                                               | ElePosition object |
-| `Task<ElePosition> GetPositionInDocAsync()`                  | get element position in document    | --                                               | ElePosition object |
-| ~~`Task FocusAsync()`~~   | focus element                       | Blazor already has a native implementation       | --                 |
-| `Task BindDragAsync(DragOptions options = null)`             | Allow element drag                  | DragOptions                                      | --                 |
-
-## 4.4.`Bq.Events`.*
-
-| name                         | describe                     | parameters        |
-| ---------------------------- | ---------------------------- | ----------------- |
-| `event Action OnResize`      | window.onresize event.       | 1: width 2:height |
-| `event Func OnResizeAsync`   | async window.onresize event. | 1: width 2:height |
-| `event Action OnScroll`      | window.onscroll event        | EventArgs         |
-| `event Action OnScrollasync` | async window.onscroll event  | EventArgs         |
-| `event Action<MouseEventArgs> OnMouseOver` | window.onmouseover event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnMouseOverAsync` | async window.onmouseover event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnMouseOut` | window.onmouseout event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnMouseOutAsync` | async window.onmouseout event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnContextMenu` | window.oncontextmenu event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnContextMenuAsync` | async window.oncontextmenu event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnMouseDown` | window.onmousedown event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnMouseDownAsync` | async window.onmousedown event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnMouseUp` | window.onmouseup event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnMouseUpAsync` | async window.onmouseup event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnMouseMove` | window.onmousemove event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnMouseMoveAsync` | async window.onmousemove event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnDbClick` | window.ondbclick event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnDbClickAsync` | async window.ondbclick event | MouseEventArgs |
-| `event Action<MouseEventArgs> OnClick` | window.onclick event | MouseEventArgs |
-| `event Func<MouseEventArgs Task> OnClickAsync` | async window.onclick event | MouseEventArgs |
-| `event Action<EventArgs> OnClose` | window.onclose event | EventArgs |
-| `event Func<EventArgs Task> OnCloseAsync` | async window.onclose event | EventArgs |
-| `event Action<FocusEventArgs> OnFocus` | window.onfocus event | FocusEventArgs |
-| `event Func<FocusEventArgs Task> OnFocusAsync` | async window.onfocus event | FocusEventArgs |
-| `event Action<FocusEventArgs> OnBlur` | window.onblur event | FocusEventArgs |
-| `event Func<FocusEventArgs Task> OnBlurAsync` | async window.onblur event | FocusEventArgs |
-| `event Action<TouchEventArgs> OnTouchStart` | window.ontouchstart event | TouchEventArgs |
-| `event Func<TouchEventArgs Task> OnTouchStartAsync` | async window.ontouchstart event | TouchEventArgs |
-| `event Action<TouchEventArgs> OnTouchMove` | window.ontouchmove event | TouchEventArgs |
-| `event Func<TouchEventArgs Task> OnTouchMoveAsync` | async window.ontouchmove event | TouchEventArgs |
-| `event Action<TouchEventArgs> OnTouchEnd` | window.ontouchend event | TouchEventArgs |
-| `event Func<TouchEventArgs Task> OnTouchEndAsync` | async window.ontouchend event | TouchEventArgs |
-| `event Action<TouchEventArgs> OnTouchCancel` | window.ontouchcancel event | TouchEventArgs |
-| `event Func<TouchEventArgs Task> OnTouchCancelAsync` | async window.ontouchcancel event | TouchEventArgs |
-| `event Action<KeyboardEventArgs> OnKeyDown` | window.onkeydown event | KeyboardEventArgs |
-| `event Func<KeyboardEventArgs Task> OnKeyDownAsync` | async window.onkeydown event | KeyboardEventArgs |
-| `event Action<KeyboardEventArgs> OnKeyPress` | window.onkeypress event | KeyboardEventArgs |
-| `event Func<KeyboardEventArgs Task> OnKeyPressAsync` | async window.onkeypress event | KeyboardEventArgs |
-| `event Action<KeyboardEventArgs> OnKeyUp` | window.onkeyup event | KeyboardEventArgs |
-| `event Func<KeyboardEventArgs Task> OnKeyUpAsync` | async window.onkeyup event | KeyboardEventArgs |
-
-# 5.Developer
-
-zxyao
-
-# 6.License
+## License
 
 MIT

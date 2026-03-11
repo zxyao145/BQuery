@@ -1,381 +1,220 @@
-# `Window.bQuery` API
+# `window.bQuery` TypeScript API
 
-Source: [BQuery/wwwroot/src/bQuery.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/bQuery.ts)
+This document reflects the current source under `src/BQuery/wwwroot/src`.
+
+Primary sources:
+
+- `src/BQuery/wwwroot/src/index.ts`
+- `src/BQuery/wwwroot/src/module/Viewport.ts`
+- `src/BQuery/wwwroot/src/module/HtmlElementHelper.ts`
+- `src/BQuery/wwwroot/src/module/DragHelper.ts`
+- `src/BQuery/wwwroot/src/module/eventHelper.ts`
+- `src/BQuery/wwwroot/src/module/domHelper.ts`
+- `src/BQuery/wwwroot/src/module/common.ts`
 
 ## Initialization
 
-`window.bQuery` is assigned only when `window.bqInit()` runs.
+When the script loads, it assigns `window.bQuery`.
 
-- On script load, `window.bqInit` is set to a one-time initializer.
-- When called, it assigns `window.bQuery`, logs `"bQuery is Ready"`, binds internal events, and sets `window.bqInit` back to `null`.
+Current version constant:
 
-Relevant sources:
+- `version = "4.0.0"`
 
-- [BQuery/wwwroot/src/bQuery.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/bQuery.ts)
-- [BQuery/wwwroot/src/global.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/global.ts)
-
-## Shape
+## Root shape
 
 ```ts
+type ViewportNamespace = typeof import("./module/Viewport").default;
+type DragNamespace = typeof import("./module/DragHelper");
+type WindowEventsNamespace = typeof import("./module/eventHelper");
+type DomHelperNamespace = typeof import("./module/domHelper");
+type ElementExtensionsNamespace = Record<string, (...args: any[]) => any>;
+
 interface WindowBQuery {
   version: string;
 
-  getWidth(element: HTMLElement, outer: boolean): number;
-  getHeight(element: HTMLElement, outer: boolean): number;
-  getWidthAndHeight(element: HTMLElement, outer: boolean): [number, number];
-
-  getScrollWidth(element: HTMLElement): number;
-  getScrollHeight(element: HTMLElement): number;
-  getScrollWidthAndHeight(element: HTMLElement): [number, number];
-
-  getScrollLeft(element: HTMLElement): number;
-  getScrollTop(element: HTMLElement): number;
-  getScrollLeftAndTop(element: HTMLElement): [number, number];
-
-  getPositionInViewport(element: HTMLElement): {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  getElementLeftInDoc(element: HTMLElement): number;
-  getElementTopInDoc(element: HTMLElement): number;
-  getPositionInDoc(element: HTMLElement): {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-
-  focus(element: HTMLElement): void;
-
-  bindDrag(
-    dom: HTMLElement,
-    options: {
-      inViewport: boolean;
-      dragElement: HTMLElement | string | null;
-    }
-  ): void;
-  addDraggable(
-    trigger: HTMLElement | string,
-    container: HTMLElement | string,
-    dragInViewport?: boolean
-  ): void;
-  removeDraggable(trigger: HTMLElement | string): void;
-  resetDraggableElePosition(trigger: HTMLElement | string): void;
-
-  domHelper: {
-    getDom(element: string | Element | null): Element | null;
-    attr(selector: string | Element, key: string, value?: string | null): string | null;
-    addCls(selector: Element | string, className: string | string[]): void;
-    removeCls(selector: Element | string, clsName: string | string[]): void;
-    css(element: HTMLElement, name: string | object, value?: string | null): void;
-  };
-
-  viewport: {
-    getWidth(): number;
-    getHeight(): number;
-    getWidthAndHeight(): [number, number];
-    getScrollWidth(): number;
-    getScrollHeight(): number;
-    getScrollWidthAndHeight(): [number, number];
-    getScrollLeft(): number;
-    getScrollTop(): number;
-    getScrollLeftAndTop(): [number, number];
-    getScrollDistToTop(): number;
-    getScrollDistToBottom(): number;
+  viewport: ViewportNamespace;
+  drag: DragNamespace;
+  windowEvents: WindowEventsNamespace;
+  domHelper: DomHelperNamespace;
+  elementExtensions: ElementExtensionsNamespace;
+  navigator: {
+    getUserAgent(): string;
   };
 
   throttle(fn: Function, threshold?: number): (...args: any[]) => void;
   debounce(fn: Function, wait?: number): (...args: any[]) => void;
-
-  getUserAgent(): string;
 }
 ```
 
-## Top-Level Properties
-
-### `version: string`
-
-Current implementation value: `"3.1.0"`.
-
-Source:
-
-- [BQuery/wwwroot/src/bQuery.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/bQuery.ts)
-
-### `domHelper`
-
-Namespace exposing DOM utility functions.
-
-Source:
-
-- [BQuery/wwwroot/src/module/domHelper.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/domHelper.ts)
-
-### `viewport`
-
-Viewport and document measurement helpers exposed as a static class object.
-
-Source:
-
-- [BQuery/wwwroot/src/module/Viewport.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/Viewport.ts)
-
-### `throttle(fn, threshold?)`
-
-Returns a throttled wrapper function. Default threshold is `160`.
-
-Source:
-
-- [BQuery/wwwroot/src/module/common.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/common.ts)
-
-### `debounce(fn, wait?)`
-
-Returns a debounced wrapper function. Default wait is `1000`.
-
-Source:
-
-- [BQuery/wwwroot/src/module/common.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/common.ts)
-
-### `getUserAgent()`
-
-Returns `navigator.userAgent`.
-
-Source:
-
-- [BQuery/wwwroot/src/bQuery.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/bQuery.ts)
-
-## Element Measurement APIs
-
-These methods are spread onto `window.bQuery` from `HtmlElementHelper`.
-
-Source:
-
-- [BQuery/wwwroot/src/module/HtmlElementHelper.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/HtmlElementHelper.ts)
-
-### `getWidth(element, outer)`
-
-Returns element width.
-
-- `outer = true`: uses `element.offsetWidth`
-- `outer = false`: uses `element.clientWidth`
-
-### `getHeight(element, outer)`
-
-Returns element height.
-
-- `outer = true`: uses `element.offsetHeight`
-- `outer = false`: uses `element.clientHeight`
-
-### `getWidthAndHeight(element, outer)`
-
-Returns `[width, height]`.
-
-### `getScrollWidth(element)`
-
-Returns `element.scrollWidth`.
-
-### `getScrollHeight(element)`
-
-Returns `element.scrollHeight`.
-
-### `getScrollWidthAndHeight(element)`
-
-Returns `[scrollWidth, scrollHeight]`.
-
-### `getScrollLeft(element)`
-
-Returns `element.scrollLeft`.
-
-### `getScrollTop(element)`
-
-Returns `element.scrollTop`.
-
-### `getScrollLeftAndTop(element)`
-
-Returns `[scrollLeft, scrollTop]`.
-
-### `getPositionInViewport(element)`
-
-Returns the bounding rectangle in viewport coordinates:
-
-```ts
-{
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-```
-
-This is derived from `element.getBoundingClientRect()`.
-
-### `getElementLeftInDoc(element)`
-
-Returns the element's left offset relative to the document by walking the `offsetParent` chain.
-
-### `getElementTopInDoc(element)`
-
-Returns the element's top offset relative to the document by walking the `offsetParent` chain.
-
-### `getPositionInDoc(element)`
-
-Returns document-relative position and outer size:
-
-```ts
-{
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-```
-
-### `focus(element)`
-
-Calls `element.focus()`.
-
-Note: the source marks this as obsolete because newer Blazor versions provide native support.
-
-## Drag APIs
-
-These methods are spread onto `window.bQuery` from `DragHelper`.
-
-Source:
-
-- [BQuery/wwwroot/src/module/DragHelper.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/DragHelper.ts)
-
-### `addDraggable(trigger, container, dragInViewport = true)`
-
-Makes `container` draggable and uses `trigger` as the drag handle.
-
-Parameters:
-
-- `trigger`: `HTMLElement` or CSS selector string
-- `container`: `HTMLElement` or CSS selector string
-- `dragInViewport`: when `true`, dragging is clamped to the viewport
-
-### `removeDraggable(trigger)`
-
-Unbinds drag handlers associated with the given trigger.
-
-### `resetDraggableElePosition(trigger)`
-
-Restores the dragged container's original inline `style` captured on first drag.
-
-### `bindDrag(dom, options)`
-
-Convenience wrapper around `addDraggable`:
-
-```ts
-bindDrag(dom, {
-  inViewport: boolean,
-  dragElement: HTMLElement | string | null
-})
-```
-
-Behavior:
-
-- `dom` is the draggable container.
-- `options.dragElement` is the drag handle.
-- `options.inViewport` controls viewport clamping.
-
-## `domHelper` Namespace
-
-Source:
-
-- [BQuery/wwwroot/src/module/domHelper.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/domHelper.ts)
-
-### `domHelper.getDom(element)`
-
-Resolves a selector or returns the element directly.
-
-- If `element` is a string, uses `document.querySelector(element)`.
-- Otherwise returns the passed element.
-
-### `domHelper.attr(selector, key, value?)`
-
-Gets or sets an attribute.
-
-- If `value` is truthy, sets the attribute and returns `value`.
-- Otherwise returns `getAttribute(key)`.
-- Returns `null` if the target element is not found.
-
-Note: because the implementation checks `if (value)`, falsy values such as `""` are treated as reads, not writes.
-
-### `domHelper.addCls(selector, className)`
-
-Adds one or more CSS classes.
-
-- `className` may be a string or `string[]`.
-
-### `domHelper.removeCls(selector, clsName)`
-
-Removes one or more CSS classes.
-
-- `clsName` may be a string or `string[]`.
-
-### `domHelper.css(element, name, value?)`
-
-Sets inline styles.
-
-Supported forms:
-
-```ts
-domHelper.css(el, "color", "red")
-domHelper.css(el, { color: "red", display: "block" })
-domHelper.css(el, "color:red;display:block")
-```
+Only `window.bQuery` is assigned by the package at runtime.
+
+## `viewport` namespace
+
+From `module/Viewport.ts`.
+
+| Method | Returns |
+| --- | --- |
+| `getWidth()` | `number` |
+| `getHeight()` | `number` |
+| `getWidthAndHeight()` | `[number, number]` |
+| `getScrollWidth()` | `number` |
+| `getScrollHeight()` | `number` |
+| `getScrollWidthAndHeight()` | `[number, number]` |
+| `getScrollLeft()` | `number` |
+| `getScrollTop()` | `number` |
+| `getScrollLeftAndTop()` | `[number, number]` |
+| `getScrollDistToTop()` | `number` |
+| `getScrollDistToBottom()` | `number` |
 
 Notes:
 
-- There is no getter form.
-- When `name` is a string and `value` is `null` or omitted, the string is parsed as a semicolon-delimited inline style declaration list.
+- Width/height and scroll values are read from `document.documentElement`.
+- Distance methods return rounded values.
 
-## `viewport` Namespace
+## `elementExtensions` namespace
 
-Source:
+From `module/HtmlElementHelper.ts`.
 
-- [BQuery/wwwroot/src/module/Viewport.ts](/mnt/d/source/repos/BQuery/BQuery/wwwroot/src/module/Viewport.ts)
+| Method | Returns | Notes |
+| --- | --- | --- |
+| `getWidth(element, outer)` | `number` | `outer=true` uses `offsetWidth`, else `clientWidth`. |
+| `getHeight(element, outer)` | `number` | `outer=true` uses `offsetHeight`, else `clientHeight`. |
+| `getWidthAndHeight(element, outer)` | `[number, number]` | |
+| `getScrollWidth(element)` | `number` | |
+| `getScrollHeight(element)` | `number` | |
+| `getScrollWidthAndHeight(element)` | `[number, number]` | |
+| `getScrollLeft(element)` | `number` | |
+| `getScrollTop(element)` | `number` | |
+| `getScrollLeftAndTop(element)` | `[number, number]` | |
+| `getPositionInViewport(element)` | `{ x: number; y: number; width: number; height: number }` | Uses `getBoundingClientRect()`. |
+| `getElementLeftInDoc(element)` | `number` | Walks `offsetParent` chain. |
+| `getElementTopInDoc(element)` | `number` | Walks `offsetParent` chain. |
+| `getPositionInDoc(element)` | `{ x: number; y: number; width: number; height: number }` | Returns zeros if element is null/undefined. |
+| `focus(element)` | `void` | Kept for compatibility. |
 
-### `viewport.getWidth()`
+## `drag` namespace
 
-Returns `document.documentElement.clientWidth`.
+From `module/DragHelper.ts`.
 
-### `viewport.getHeight()`
+### Types
 
-Returns `document.documentElement.clientHeight`.
+```ts
+interface DragOptions {
+  inViewport?: boolean;               // default true
+  dragElement?: HTMLElement | string | null;
+}
+```
 
-### `viewport.getWidthAndHeight()`
+### Methods
 
-Returns `[width, height]`.
+| Method | Returns | Description |
+| --- | --- | --- |
+| `bindDrag(dom: HTMLElement, options?: DragOptions | null)` | `void` | Binds drag to `dom`. Uses `options.dragElement ?? dom` as trigger. |
+| `addDraggable(trigger: HTMLElement | string | null, container: HTMLElement | string, dragInViewport?: boolean)` | `void` | Low-level binding helper. |
+| `removeDraggable(trigger: HTMLElement | string)` | `void` | Unbinds and removes dragger for trigger. |
+| `resetDraggableElePosition(trigger: HTMLElement | string)` | `void` | Restores container style captured at first drag init. |
 
-### `viewport.getScrollWidth()`
+Behavior notes:
 
-Returns `document.documentElement.scrollWidth`.
+- Uses Pointer Events (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`).
+- Movement is throttled (`10ms`) and can be clamped to viewport bounds.
 
-### `viewport.getScrollHeight()`
+## `windowEvents` namespace
 
-Returns `document.documentElement.scrollHeight`.
+From `module/eventHelper.ts`.
 
-### `viewport.getScrollWidthAndHeight()`
+### Types
 
-Returns `[scrollWidth, scrollHeight]`.
+```ts
+interface EventInfo {
+  name: string;
+}
 
-### `viewport.getScrollLeft()`
+interface DotNetEventSink {
+  invokeMethodAsync(methodIdentifier: string, ...args: unknown[]): Promise<unknown>;
+}
+```
 
-Returns `document.documentElement.scrollLeft`.
+### Methods
 
-### `viewport.getScrollTop()`
+| Method | Returns | Description |
+| --- | --- | --- |
+| `addWindowEventListener(evt: EventInfo, listenerId: string, dotNetRef: DotNetEventSink)` | `void` | Adds one event for one listener ID. |
+| `removeWindowEventListener(evt: EventInfo, listenerId: string)` | `void` | Removes one event for one listener ID. |
+| `addWindowEventsListener(events: EventInfo[], listenerId: string, dotNetRef: DotNetEventSink)` | `void` | Adds many events at once; supports `"*"` wildcard to bind all supported events. |
+| `removeWindowEventsListener(events: EventInfo[], listenerId: string)` | `void` | Removes many events at once; supports `"*"` wildcard. |
+| `disposeWindowEventsListener(listenerId: string)` | `void` | Removes all event bindings for a listener ID. |
 
-Returns `document.documentElement.scrollTop`.
+Supported event names:
 
-### `viewport.getScrollLeftAndTop()`
+- `mousedown`
+- `mouseup`
+- `click`
+- `dblclick`
+- `mouseover`
+- `mouseout`
+- `mousemove`
+- `contextmenu`
+- `resize`
+- `scroll`
+- `focus`
+- `blur`
+- `touchstart`
+- `touchmove`
+- `touchend`
+- `touchcancel`
+- `keydown`
+- `keypress`
+- `keyup`
 
-Returns `[scrollLeft, scrollTop]`.
+Interop notes:
 
-### `viewport.getScrollDistToTop()`
+- `resize`, `scroll`, and some high-frequency events are throttled (`50ms` default in this module).
+- Events are converted to Blazor-friendly payloads and forwarded through `dotNetRef.invokeMethodAsync(...)`.
 
-Returns the rounded current scroll distance from the top of the page.
+## `domHelper` namespace
 
-### `viewport.getScrollDistToBottom()`
+From `module/domHelper.ts`.
 
-Returns the rounded remaining scroll distance to the bottom of the page.
+| Method | Returns | Description |
+| --- | --- | --- |
+| `getDom(element: string | Element)` | `Element` | Resolves CSS selector or returns element; throws if not found. |
+| `attr(selector: string | Element, key: string, value?: string | null)` | `string | null` | Legacy attribute get/set helper. |
+| `setAttr(selector: string | Element, key: string, value: string)` | `void` | Sets an attribute. |
+| `getAttr(selector: string | Element, key: string)` | `string | null` | Gets an attribute value. |
+| `removeAttr(selector: string | Element, key: string)` | `void` | Removes an attribute. |
+| `addCls(selector: string | Element, className: string | string[])` | `void` | Adds one or more classes. |
+| `removeCls(selector: string | Element, clsName: string | string[])` | `void` | Removes one or more classes. |
+| `css(element: HTMLElement, name: string | object, value?: string | null)` | `void` | Sets inline styles. |
+
+`css(...)` supported forms:
+
+```ts
+domHelper.css(el, "color", "red");
+domHelper.css(el, { color: "red", display: "block" });
+domHelper.css(el, "color:red;display:block");
+```
+
+`attr(...)` note:
+
+- The current implementation checks `if (value)`, so falsy values (such as `""`) are treated as read mode instead of write mode.
+- Prefer `setAttr/getAttr/removeAttr` for explicit attribute operations.
+
+## `navigator`
+
+| Member | Returns |
+| --- | --- |
+| `navigator.getUserAgent()` | `string` |
+
+## `throttle` and `debounce`
+
+From `module/common.ts`.
+
+| Function | Default | Description |
+| --- | --- | --- |
+| `throttle(fn, threshold?)` | `threshold = 160` | Executes at a controlled rate and also schedules a trailing call. |
+| `debounce(fn, wait?)` | `wait = 1000` | Delays execution until calls stop for `wait` ms. |
+
+Additional note:
+
+- The function returned by `throttle` includes a `cancel()` function used by drag/event cleanup code.

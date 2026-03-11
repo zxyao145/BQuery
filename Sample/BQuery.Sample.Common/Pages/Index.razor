@@ -1,16 +1,25 @@
 ﻿@page "/"
+@inject IJSRuntime jSRuntime
+@inject Bq bq
+@implements IAsyncDisposable
 
 <div class="m-3 ">
     UserAgent: @userAgent;
 </div>
 
 <div class="m-3">
-    Bq.Events.OnResize(vw & vh Will probably change):<br />
+    bq.Events.OnResize(vw & vh Will probably change):<br />
     vw:@vw<br />
     vh:@vh<br />
     scrollW:@scrollW<br />
     scrollH:@scrollH
 </div>
+
+<div class="m-3">
+    <h3>Bq.Events.OnMouseClick</h3>
+    mouseClickX: @mouseClickX, mouseClickY: @mouseClickY
+</div>
+
 
 <div @ref="elm" class="m-3 badge-primary text-white"
      style="width: 500px; height: 200px; padding: 10px 8px 5px 2px;">
@@ -79,6 +88,8 @@
     private double mouseClientY;
     private double mouseScreenX;
     private double mouseScreenY;
+    private double mouseClickX;
+    private double mouseClickY;
 
 
     ElementReference elm;
@@ -87,7 +98,7 @@
     {
         if (firstRender)
         {
-            userAgent = await Bq.GetUserAgentAsync();
+            userAgent = await jSRuntime.GetUserAgentAsync();
 
             //width = await elm.GetWidthAsync();
             //height = await elm.GetHeightAsync();
@@ -95,15 +106,15 @@
             width = whArr[0];
             height = whArr[1];
 
-            //vw = await Bq.Viewport.GetWidthAsync();
-            //vh = await Bq.Viewport.GetHeightAsync();
-            var vWhArr = await Bq.Viewport.GetWidthAndHeightAsync();
+            //vw = await bq.Viewport.GetWidthAsync();
+            //vh = await bq.Viewport.GetHeightAsync();
+            var vWhArr = await bq.Viewport.GetWidthAndHeightAsync();
             vw = vWhArr[0];
             vh = vWhArr[1];
 
-            //scrollW = await Bq.Viewport.GetScrollWidthAsync();
-            //scrollH = await Bq.Viewport.GetScrollHeightAsync();
-            var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
+            //scrollW = await bq.Viewport.GetScrollWidthAsync();
+            //scrollH = await bq.Viewport.GetScrollHeightAsync();
+            var scrollWH = await bq.Viewport.GetScrollWidthAndHeightAsync();
             scrollW = scrollWH[0];
             scrollH = scrollWH[1];
 
@@ -115,11 +126,18 @@
             eleScrollW = scrollWH2[0];
             eleScrollH = scrollWH2[1];
 
-            // Bq.Events.OnResize += OnWindowResize;
-            Bq.Events.OnResizeAsync += OnWindowResizeAsync;
-            Bq.Events.OnScrollAsync += OnWindowScrollAsync;
+            await bq.AddWindowEventListeners(
+                WindowEvent.OnResize, 
+                WindowEvent.OnScroll,
+                WindowEvent.OnMouseMove,
+                WindowEvent.OnClick
+            );
 
-            Bq.Events.OnMouseMove += OnWindowMouseMove;
+            // Bq.Events.OnResize += OnWindowResize;
+            bq.WindowEvents.OnResizeAsync += OnWindowResizeAsync;
+            bq.WindowEvents.OnScrollAsync += OnWindowScrollAsync;
+            bq.WindowEvents.OnMouseMoveAsync += OnWindowMouseMove;
+            bq.WindowEvents.OnClickAsync += OnWindowClick;
 
             vpPos = await elm2.GetPositionInViewportAsync();
 
@@ -129,19 +147,19 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task OnWindowResizeAsync(double width, double height)
+    private async Task OnWindowResizeAsync(ResizeEventArgs e)
     {
-        vw = width;
-        vh = height;
+        vw = e.Width;
+        vh = e.Height;
 
-        var scrollWH = await Bq.Viewport.GetScrollWidthAndHeightAsync();
+        var scrollWH = await bq.Viewport.GetScrollWidthAndHeightAsync();
         scrollW = scrollWH[0];
         scrollH = scrollWH[1];
 
-        var vWhArr = await Bq.Viewport.GetWidthAndHeightAsync();
+        var vWhArr = await bq.Viewport.GetWidthAndHeightAsync();
         vw = vWhArr[0];
         vh = vWhArr[1];
-        StateHasChanged();
+        await InvokeAsync(() => StateHasChanged());
     }
 
     private async Task OnWindowScrollAsync(EventArgs e)
@@ -150,16 +168,29 @@
         docPos = await elm2.GetPositionInDocAsync();
         vpPos = await elm2.GetPositionInViewportAsync();
 
-        StateHasChanged();
+        await InvokeAsync(() => StateHasChanged());
     }
 
-    private void OnWindowMouseMove(MouseEventArgs e)
+    private async Task OnWindowMouseMove(MouseEventArgs e)
     {
+        //Console.WriteLine( DateTime.Now.ToString() + "OnWindowMouseMove");
         mouseClientX = e.ClientX;
         mouseClientY = e.ClientY;
         mouseScreenX = e.ScreenX;
         mouseScreenY = e.ScreenY;
-        StateHasChanged();
+        await InvokeAsync(() => StateHasChanged());
     }
 
+    private async Task OnWindowClick(MouseEventArgs e)
+    {
+        Console.WriteLine($"Events_OnClick {e.ClientX}, {e.ClientY}");
+        mouseClickX = e.ClientX;
+        mouseClickY = e.ClientY;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await bq.RemoveWindowEventListeners();
+    }
 }

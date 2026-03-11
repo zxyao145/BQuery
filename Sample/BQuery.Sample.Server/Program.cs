@@ -1,3 +1,4 @@
+using BQuery;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -14,7 +15,6 @@ namespace BQuery.Sample.Server
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build()
-                .UseBQuery()
                 .Run();
         }
 

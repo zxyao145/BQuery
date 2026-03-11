@@ -340,6 +340,7 @@ ASALocalRun/
 healthchecksdb
 
 *.mp4
-src/wwwroot/bQuery.min.js.map
-src/wwwroot/bQuery.min.js
-dist/
+/src/BQuery/wwwroot/dist/
+!/Sample/BlazorAppAuto/BlazorAppAuto/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css
+!/Sample/BlazorAppAuto/BlazorAppAuto/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map
+bQuery.min.js
