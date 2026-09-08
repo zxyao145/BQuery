@@ -85,7 +85,7 @@ export const removeCls = (
 
 export const css = (
 	element: HTMLElement,
-	name: string | any,
+	name: string | Record<string, string>,
 	value: string | null = null,
 ) => {
 	if (typeof name === "string") {

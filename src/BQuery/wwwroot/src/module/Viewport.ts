@@ -1,51 +1,53 @@
-﻿export default class Viewport {
-	public static getWidth() {
+﻿const Viewport = {
+	getWidth() {
 		return document.documentElement.clientWidth;
-	}
+	},
 
-	public static getHeight() {
+	getHeight() {
 		return document.documentElement.clientHeight;
-	}
+	},
 
-	public static getWidthAndHeight() {
+	getWidthAndHeight() {
 		return [Viewport.getWidth(), Viewport.getHeight()];
-	}
+	},
 
-	public static getScrollWidth() {
+	getScrollWidth() {
 		return document.documentElement.scrollWidth;
-	}
+	},
 
-	public static getScrollHeight() {
+	getScrollHeight() {
 		return document.documentElement.scrollHeight;
-	}
+	},
 
-	public static getScrollWidthAndHeight() {
+	getScrollWidthAndHeight() {
 		return [Viewport.getScrollWidth(), Viewport.getScrollHeight()];
-	}
+	},
 
-	public static getScrollLeft() {
+	getScrollLeft() {
 		return document.documentElement.scrollLeft;
-	}
+	},
 
-	public static getScrollTop() {
+	getScrollTop() {
 		return document.documentElement.scrollTop;
-	}
+	},
 
-	public static getScrollLeftAndTop() {
+	getScrollLeftAndTop() {
 		return [Viewport.getScrollLeft(), Viewport.getScrollTop()];
-	}
+	},
 
-	static getScrollDistToTop() {
+	getScrollDistToTop() {
 		const scrollTop =
 			document.documentElement.scrollTop || document.body.scrollTop || 0;
 		return Math.round(scrollTop);
-	}
+	},
 
-	static getScrollDistToBottom() {
+	getScrollDistToBottom() {
 		const dist =
 			document.documentElement.scrollHeight -
 			document.documentElement.scrollTop -
 			document.documentElement.clientHeight;
 		return Math.round(dist);
-	}
-}
+	},
+};
+
+export default Viewport;

@@ -50,6 +50,7 @@
 			wwwroot\package.json;
 			wwwroot\biome.json;
 			wwwroot\pnpm-lock.yaml;
+			wwwroot\pnpm-workspace.yaml;
 			wwwroot\tsconfig.json;
 			wwwroot\vite.config.js;
 		</DefaultItemExcludes>

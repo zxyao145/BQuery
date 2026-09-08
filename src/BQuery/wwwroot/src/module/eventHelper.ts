@@ -305,8 +305,9 @@ const addWindowEventListener = (
 	} else {
 		listenersDotNetRef.get(listenerId)?.events.add(evt);
 	}
-	if (eventListeners.has(eventName)) {
-		eventListeners.get(eventName)!.add(listenerId);
+	const listenerIds = eventListeners.get(eventName);
+	if (listenerIds) {
+		listenerIds.add(listenerId);
 		return;
 	}
 	eventListeners.set(eventName, new Set<string>([listenerId]));

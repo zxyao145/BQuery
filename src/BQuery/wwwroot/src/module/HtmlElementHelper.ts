@@ -1,75 +1,76 @@
-﻿import { getClassStaticFunc } from "./common";
-
-class ElementWidthAndHeightHelper {
+﻿const ElementWidthAndHeightHelper = {
 	//#region width height
 
-	public static getWidth(element: HTMLElement, outer: boolean) {
+	getWidth(element: HTMLElement, outer: boolean) {
 		if (outer) {
 			return element.offsetWidth;
 		} else {
 			return element.clientWidth;
 		}
-	}
+	},
 
-	public static getHeight(element: HTMLElement, outer: boolean) {
+	getHeight(element: HTMLElement, outer: boolean) {
 		if (outer) {
 			return element.offsetHeight;
 		} else {
 			return element.clientHeight;
 		}
-	}
+	},
 
-	public static getWidthAndHeight = (element: HTMLElement, outer: boolean) => {
-		return [this.getWidth(element, outer), this.getHeight(element, outer)];
-	};
+	getWidthAndHeight(element: HTMLElement, outer: boolean) {
+		return [
+			ElementWidthAndHeightHelper.getWidth(element, outer),
+			ElementWidthAndHeightHelper.getHeight(element, outer),
+		];
+	},
 
 	//#endregion
-}
+};
 
-class ElementScrollHelper {
+const ElementScrollHelper = {
 	//#region element's Scroll Width and Height
 
-	public static getScrollWidth(element: HTMLElement) {
+	getScrollWidth(element: HTMLElement) {
 		return element.scrollWidth;
-	}
+	},
 
-	public static getScrollHeight(element: HTMLElement) {
+	getScrollHeight(element: HTMLElement) {
 		return element.scrollHeight;
-	}
+	},
 
-	public static getScrollWidthAndHeight(element: HTMLElement) {
+	getScrollWidthAndHeight(element: HTMLElement) {
 		return [
 			ElementScrollHelper.getScrollWidth(element),
 			ElementScrollHelper.getScrollHeight(element),
 		];
-	}
+	},
 
 	//#endregion
 
 	//#region Scroll Left and top
 
-	public static getScrollLeft(element: HTMLElement) {
+	getScrollLeft(element: HTMLElement) {
 		return element.scrollLeft;
-	}
+	},
 
-	public static getScrollTop(element: HTMLElement) {
+	getScrollTop(element: HTMLElement) {
 		return element.scrollTop;
-	}
+	},
 
-	public static getScrollLeftAndTop(element: HTMLElement) {
+	getScrollLeftAndTop(element: HTMLElement) {
 		return [
 			ElementScrollHelper.getScrollLeft(element),
 			ElementScrollHelper.getScrollTop(element),
 		];
-	}
+	},
 
 	//#endregion
-}
+};
 
-class ElementPositionHelper {
+const ElementPositionHelper = {
 	//#region element's position
 
-	public static getPositionInViewport(element: HTMLElement) {
+	getPositionInViewport(element: HTMLElement) {
 		var rect = element.getBoundingClientRect();
 		return {
 			x: rect.left,
@@ -77,9 +78,9 @@ class ElementPositionHelper {
 			width: rect.width,
 			height: rect.height,
 		};
-	}
+	},
 
-	public static getElementLeftInDoc(element: HTMLElement) {
+	getElementLeftInDoc(element: HTMLElement) {
 		var actualLeft = element.offsetLeft;
 		var current = element.offsetParent as HTMLElement;
 
@@ -89,9 +90,9 @@ class ElementPositionHelper {
 		}
 
 		return actualLeft;
-	}
+	},
 
-	public static getElementTopInDoc(element: HTMLElement) {
+	getElementTopInDoc(element: HTMLElement) {
 		var actualTop = element.offsetTop;
 		var current = element.offsetParent as HTMLElement;
 		while (typeof current !== "undefined" && current !== null) {
@@ -100,9 +101,9 @@ class ElementPositionHelper {
 		}
 
 		return actualTop;
-	}
+	},
 
-	public static getPositionInDoc(element: HTMLElement) {
+	getPositionInDoc(element: HTMLElement) {
 		if (!element) {
 			console.warn("getPositionInDoc: element is null or undefined");
 			return {
@@ -119,23 +120,23 @@ class ElementPositionHelper {
 			height: ElementWidthAndHeightHelper.getHeight(element, true),
 		};
 		return rect;
-	}
+	},
 
 	//#endregion position
-}
+};
 
-class ElementHelper {
+const ElementHelper = {
 	// [obsolete]: Blazor has a native implementation from .net6
-	public static focus(element: HTMLElement) {
+	focus(element: HTMLElement) {
 		element.focus();
-	}
-}
+	},
+};
 
 const htmlElementHelper = {
-	...getClassStaticFunc(ElementWidthAndHeightHelper),
-	...getClassStaticFunc(ElementScrollHelper),
-	...getClassStaticFunc(ElementPositionHelper),
-	...getClassStaticFunc(ElementHelper),
+	...ElementWidthAndHeightHelper,
+	...ElementScrollHelper,
+	...ElementPositionHelper,
+	...ElementHelper,
 };
 
 export default htmlElementHelper;

@@ -19,18 +19,16 @@ jobs:
           8.0.x
           10.0.x
 
-    - name: Setup NodeJs
-      uses: actions/setup-node@v6
+    - name: Setup pnpm and Node.js
+      uses: pnpm/setup@v1
       with:
-        node-version: 18
-        
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4.2.0
-      with:
-        version: 10.12.1
+        package-json-file: src/BQuery/wwwroot/package.json
+        runtime: node@26
+        install: false
           
     - name: Pnpm install
-      run: cd src/BQuery/wwwroot/ && pnpm install
+      working-directory: src/BQuery/wwwroot
+      run: pnpm install --frozen-lockfile
       
     - name: Restore dependencies
       run: dotnet restore

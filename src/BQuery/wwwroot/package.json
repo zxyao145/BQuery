@@ -2,12 +2,13 @@
   "name": "bquery",
   "type": "module",
   "version": "4.0.0",
+  "packageManager": "pnpm@12.3.4",
   "description": "An extended library of interaction between blazor and js. And The name mimics jQuery.",
   "main": "bQuery.js",
   "scripts": {
     "dev": "vite build --config vite.config.js --mode development && node -e \"require('fs').copyFileSync('dist/bQuery.min.js','bQuery.min.js')\"",
     "build": "vite build --config vite.config.js --mode production && node -e \"require('fs').copyFileSync('dist/bQuery.min.js','bQuery.min.js')\"",
-    "format": "biome format --write",
+    "fmt": "biome format --write",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
     "check": "biome check --write"
@@ -20,9 +21,9 @@
   "author": "zxyao",
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "2.4.6",
-    "@types/node": "^25.3.2",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.5"
+    "@biomejs/biome": "2.5.12",
+    "@types/node": "^26.5.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
   }
 }

@@ -1,4 +1,4 @@
-﻿export const autoDebug = (invoke: Function) => {
+﻿export const autoDebug = (invoke: () => void) => {
 	var isDebug = sessionStorage.getItem("isDebug") === "true";
 	if (isDebug) {
 		invoke();
@@ -11,16 +11,18 @@
  * @param fn
  * @param wait
  */
-export function debounce(fn: Function, wait = 1000) {
+export function debounce<TThis, TArgs extends unknown[]>(
+	fn: (this: TThis, ...args: TArgs) => unknown,
+	wait = 1000,
+) {
 	var timer: number | null = null;
-	return function (...args: any[]) {
-		var context = this as any;
+	return function (this: TThis, ...args: TArgs) {
 		if (timer) {
 			clearTimeout(timer);
 		}
 		timer = window.setTimeout(() => {
 			//var arr = Array.prototype.slice.call(args);
-			fn.apply(context, args);
+			fn.apply(this, args);
 		}, wait);
 	};
 }
@@ -32,12 +34,15 @@ export function debounce(fn: Function, wait = 1000) {
  * @param fn
  * @param threshold
  */
-export function throttle(fn: Function, threshold = 160) {
+export function throttle<TThis, TArgs extends unknown[]>(
+	fn: (this: TThis, ...args: TArgs) => unknown,
+	threshold = 160,
+) {
 	let timeout: number | null = null;
-	var start = +new Date();
+	var start = Date.now();
 
-	const throttled = function (this: any, ...args: any[]) {
-		const curTime = +new Date() - 0;
+	const throttled = function (this: TThis, ...args: TArgs) {
+		const curTime = Date.now();
 		//总是干掉事件回调
 		if (timeout !== null) {
 			window.clearTimeout(timeout);
@@ -50,13 +55,12 @@ export function throttle(fn: Function, threshold = 160) {
 			//让方法在脱离事件后也能执行一次
 			timeout = window.setTimeout(() => {
 				timeout = null;
-				//@ts-expect-error
 				fn.apply(this, args);
 			}, threshold);
 		}
 	};
 
-	(throttled as typeof throttled & { cancel: () => void }).cancel = () => {
+	throttled.cancel = () => {
 		if (timeout !== null) {
 			window.clearTimeout(timeout);
 			timeout = null;
@@ -65,23 +69,3 @@ export function throttle(fn: Function, threshold = 160) {
 
 	return throttled;
 }
-
-export const getClassStaticFunc = (type: object) => {
-	const res: {
-		[index: string]: { message: Function };
-	} = {};
-	for (const key in Object.getOwnPropertyDescriptors(type)) {
-		if (["length", "name", "prototype"].includes(key)) {
-			continue;
-		}
-		autoDebug(() => {
-			console.log(key);
-		});
-		//@ts-expect-error
-		if (typeof type[key] === "function") {
-			//@ts-expect-error
-			res[key] = type[key];
-		}
-	}
-	return res;
-};

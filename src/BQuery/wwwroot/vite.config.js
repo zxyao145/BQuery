@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
     base: './',
     build: {
       outDir: 'dist',
+      target: ['chrome107', 'edge107', 'firefox104', 'safari16'],
       emptyOutDir: true,
       sourcemap: !isProd,
       chunkSizeWarningLimit: 20,
