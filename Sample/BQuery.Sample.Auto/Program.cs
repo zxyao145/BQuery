@@ -1,0 +1,12 @@
+using BQuery;
+using BQuery.Sample.Common;
+using BQuery.Sample.Auto;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddRazorComponents().AddInteractiveServerComponents().AddInteractiveWebAssemblyComponents();
+builder.Services.AddBQuery();
+var app = builder.Build();
+if (app.Environment.IsDevelopment()) app.UseWebAssemblyDebugging();
+app.UseAntiforgery();
+app.MapStaticAssets();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode().AddInteractiveWebAssemblyRenderMode().AddAdditionalAssemblies(typeof(Routes).Assembly);
+app.Run();

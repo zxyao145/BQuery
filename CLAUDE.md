@@ -29,7 +29,18 @@ pnpm run build                  # Production build (minified, no sourcemap)
 pnpm run dev                    # Development build (with sourcemap, watch mode)
 ```
 
-The release build automatically runs `pnpm run build` via MSBuild target.
+Release builds incrementally generate JavaScript before static web asset discovery.
+
+Regression checks:
+```bash
+dotnet test tests/BQuery.Tests/BQuery.Tests.csproj
+python3 tests/verify-package.py
+pnpm --dir src/BQuery/wwwroot run typecheck
+pnpm --dir src/BQuery/wwwroot run lint
+# Build the solution in Release before running browser tests.
+pnpm --dir src/BQuery/wwwroot exec playwright install chromium
+pnpm --dir src/BQuery/wwwroot test
+```
 
 ## Architecture
 
@@ -44,7 +55,7 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 | `ElementReferenceExtensions.cs` | Extension methods on `ElementReference` for DOM operations |
 | `Constants/JsModuleConstants.cs` | JavaScript function name constants for interop calls |
 | `Constants/WindowEvents.cs` | `WindowEvent` struct with event definitions decorated with `[WindowEventHandler]` |
-| `SourceGeneration/` | Source-generator attributes consumed by the main library |
+| `Sg/` | Source-generator attributes consumed by the main library |
 | `ServiceExtension.cs` | `AddBQuery()` DI registration extension |
 
 ### Source Generators (`src/BQuery.SourceGenerators/`)
@@ -71,7 +82,7 @@ The release build automatically runs `pnpm run build` via MSBuild target.
 1. **C# → JS**: C# calls `IJSRuntime.InvokeAsync` using generated `*Method` constants derived from `JsModuleConstants`
 2. **JS → C#**: JavaScript calls `DotNetObjectReference.invokeMethodAsync` on the scoped `BqEvents` instance, which raises the matching .NET events
 
-The JavaScript module path is `./_content/BQuery/dist/bQuery.min.mjs` (ES module format).
+The runtime script is `_content/BQuery/dist/bQuery.min.js` (UMD). C# invokes the global `bQuery.*` API. The Blazor Web App initializer waits for the script to load; no `.mjs` output is generated.
 
 ### Scoped Service Lifecycle
 
@@ -114,11 +125,13 @@ private static extern ref IJSRuntime GetJsRuntime(WebElementReferenceContext con
 
 ### Sample Projects
 The `Sample/` directory contains:
-- `BQuery.Sample.Wasm` - WebAssembly demo
-- `BQuery.Sample.Server` - Blazor Server demo
+- `BQuery.Sample.Wasm` - Interactive WebAssembly host (port 5302)
+- `BQuery.Sample.Server` - Interactive Server host (port 5301)
 - `BQuery.Sample.Common` - Shared Razor components
-- `BlazorAppAuto/` - Auto render mode demo
+- `BQuery.Sample.Auto` - Interactive Auto host (port 5303)
 
 ## CI/CD
 
-The GitHub workflow (`.github/workflows/dotnet-tag.yml`) triggers on tag push, builds for .NET 8/10, and publishes to NuGet.
+The GitHub workflow (`.github/workflows/dotnet-tag.yml`) checks pull requests, branch pushes, and tags. It runs .NET 8/10 tests, TypeScript checks, clean packaging, and Chromium tests for Server/WASM/Auto. Only tags publish to NuGet.
+
+`BQuery.Sample.Client` is the shared browser startup for Wasm and Auto. All routes and UI live in Common; hosts assign render modes with prerender enabled. See `Sample/README.md`.

@@ -1,0 +1,120 @@
+@page "/events"
+@inherits LabComponent
+@inject Microsoft.Extensions.Logging.ILogger<BqEvents> Logger
+<PageHeading Title="Window Events" />
+<div class="grid"><EventSubscriber Name="A" /><EventSubscriber Name="B" /></div>
+<section class="panel" style="margin-top:24px"><h2>All events</h2><p class="muted">19 event types · Last 100 entries. This panel owns its BqEvents instance; clearing it leaves A and B subscribed.</p>
+<fieldset disabled="@(!Ready)"><div class="controls"><label>Subscription <select disabled="@active" @bind="strategy"><option>Async events</option><option>Sync events</option><option>Delegate API</option><option>JS wildcard</option></select></label><button class="primary" disabled="@active" @onclick="Start">Start all events</button><button disabled="@(!active)" @onclick="Pause">Pause all events</button><button @onclick="DisposeScope">Dispose scope</button><button @onclick="() => logs.Clear()">Clear log</button></div></fieldset>
+<div tabindex="0" class="specimen event-pad" data-testid="event-pad"><strong>Click · move · touch · type</strong><p>Type below for keyboard events. Focus and blur apply to the browser window.</p><input aria-label="Event keyboard input" placeholder="Type something…" /></div>
+<p class="tag">@state</p><ul class="logs" data-testid="event-log">@foreach(var line in logs){<li>@line</li>}</ul><code class="call">@Call</code><p class="error" role="alert">@Error</p></section>
+<SourcePanel File="Pages/Events.razor" /><SourcePanel File="Components/EventSubscriber.razor" />
+@code {
+    private BqEvents? owned;
+    private bool active;
+    private DotNetObjectReference<BqEvents>? jsReference;
+    private readonly string jsListenerId = Guid.NewGuid().ToString("N");
+    private string strategy = "Async events", state = "Paused. No window listeners registered.";
+    private readonly List<string> logs = [];
+    private string Call => strategy == "JS wildcard" ? "bQuery.windowEvents.addWindowEventsListener([{ name: '*' }], listenerId, dotNetReference);" : strategy == "Delegate API" ? "await events.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnClick, handler);" : "events.OnClick" + (strategy == "Async events" ? "Async" : "") + " += handler; await events.AddWindowEventListeners(...);";
+    private Task Record<T>(string name, T args) => InvokeAsync(() => { if (Disposed || !active) return; logs.Insert(0, $"{DateTime.Now:HH:mm:ss.fff}  {name}  {JsonSerializer.Serialize(args)}"); if(logs.Count>100) logs.RemoveAt(logs.Count-1); StateHasChanged(); });
+    private Task Start() => Queue(async () => {
+        await ReleaseOwned();
+        if (Disposed) return;
+        owned = new BqEvents(JS, Logger);
+        if (strategy == "Delegate API") {
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnMouseDown, args => Record("mousedown", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnMouseUp, args => Record("mouseup", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnClick, args => Record("click", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnDblClick, args => Record("dblclick", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnMouseOver, args => Record("mouseover", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnMouseOut, args => Record("mouseout", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnMouseMove, args => Record("mousemove", args));
+            await owned.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnContextMenu, args => Record("contextmenu", args));
+            await owned.AddWindowEventListener<ResizeEventArgs>(WindowEvent.OnResize, args => Record("resize", args));
+            await owned.AddWindowEventListener<EventArgs>(WindowEvent.OnScroll, args => Record("scroll", args));
+            await owned.AddWindowEventListener<FocusEventArgs>(WindowEvent.OnFocus, args => Record("focus", args));
+            await owned.AddWindowEventListener<FocusEventArgs>(WindowEvent.OnBlur, args => Record("blur", args));
+            await owned.AddWindowEventListener<TouchEventArgs>(WindowEvent.OnTouchStart, args => Record("touchstart", args));
+            await owned.AddWindowEventListener<TouchEventArgs>(WindowEvent.OnTouchMove, args => Record("touchmove", args));
+            await owned.AddWindowEventListener<TouchEventArgs>(WindowEvent.OnTouchEnd, args => Record("touchend", args));
+            await owned.AddWindowEventListener<TouchEventArgs>(WindowEvent.OnTouchCancel, args => Record("touchcancel", args));
+            await owned.AddWindowEventListener<KeyboardEventArgs>(WindowEvent.OnKeyDown, args => Record("keydown", args));
+            await owned.AddWindowEventListener<KeyboardEventArgs>(WindowEvent.OnKeyPress, args => Record("keypress", args));
+            await owned.AddWindowEventListener<KeyboardEventArgs>(WindowEvent.OnKeyUp, args => Record("keyup", args));
+        } else {
+            if (strategy is "Async events" or "JS wildcard") {
+                owned.OnMouseDownAsync += args => Record("mousedown", args);
+                owned.OnMouseUpAsync += args => Record("mouseup", args);
+                owned.OnClickAsync += args => Record("click", args);
+                owned.OnDblClickAsync += args => Record("dblclick", args);
+                owned.OnMouseOverAsync += args => Record("mouseover", args);
+                owned.OnMouseOutAsync += args => Record("mouseout", args);
+                owned.OnMouseMoveAsync += args => Record("mousemove", args);
+                owned.OnContextMenuAsync += args => Record("contextmenu", args);
+                owned.OnResizeAsync += args => Record("resize", args);
+                owned.OnScrollAsync += args => Record("scroll", args);
+                owned.OnFocusAsync += args => Record("focus", args);
+                owned.OnBlurAsync += args => Record("blur", args);
+                owned.OnTouchStartAsync += args => Record("touchstart", args);
+                owned.OnTouchMoveAsync += args => Record("touchmove", args);
+                owned.OnTouchEndAsync += args => Record("touchend", args);
+                owned.OnTouchCancelAsync += args => Record("touchcancel", args);
+                owned.OnKeyDownAsync += args => Record("keydown", args);
+                owned.OnKeyPressAsync += args => Record("keypress", args);
+                owned.OnKeyUpAsync += args => Record("keyup", args);
+            } else {
+                owned.OnMouseDown += args => _ = Record("mousedown", args);
+                owned.OnMouseUp += args => _ = Record("mouseup", args);
+                owned.OnClick += args => _ = Record("click", args);
+                owned.OnDblClick += args => _ = Record("dblclick", args);
+                owned.OnMouseOver += args => _ = Record("mouseover", args);
+                owned.OnMouseOut += args => _ = Record("mouseout", args);
+                owned.OnMouseMove += args => _ = Record("mousemove", args);
+                owned.OnContextMenu += args => _ = Record("contextmenu", args);
+                owned.OnResize += args => _ = Record("resize", args);
+                owned.OnScroll += args => _ = Record("scroll", args);
+                owned.OnFocus += args => _ = Record("focus", args);
+                owned.OnBlur += args => _ = Record("blur", args);
+                owned.OnTouchStart += args => _ = Record("touchstart", args);
+                owned.OnTouchMove += args => _ = Record("touchmove", args);
+                owned.OnTouchEnd += args => _ = Record("touchend", args);
+                owned.OnTouchCancel += args => _ = Record("touchcancel", args);
+                owned.OnKeyDown += args => _ = Record("keydown", args);
+                owned.OnKeyPress += args => _ = Record("keypress", args);
+                owned.OnKeyUp += args => _ = Record("keyup", args);
+            }
+            if (strategy == "JS wildcard")
+            {
+                jsReference = DotNetObjectReference.Create(owned);
+                await JS.InvokeVoidAsync("bQuery.windowEvents.addWindowEventsListener", new[] { new { name = "*" } }, jsListenerId, jsReference);
+            }
+            else
+            {
+            await owned.AddWindowEventListeners(WindowEvent.OnMouseDown, WindowEvent.OnMouseUp, WindowEvent.OnClick, WindowEvent.OnDblClick, WindowEvent.OnMouseOver, WindowEvent.OnMouseOut, WindowEvent.OnMouseMove, WindowEvent.OnContextMenu, WindowEvent.OnResize, WindowEvent.OnScroll, WindowEvent.OnFocus, WindowEvent.OnBlur, WindowEvent.OnTouchStart, WindowEvent.OnTouchMove, WindowEvent.OnTouchEnd, WindowEvent.OnTouchCancel, WindowEvent.OnKeyDown, WindowEvent.OnKeyPress, WindowEvent.OnKeyUp);
+            }
+        }
+        active=true; state="Listening to all 19 events · "+strategy;
+    });
+    private Task Pause() => Queue(async () => { active=false; if(jsReference is not null) await JS.InvokeVoidAsync("bQuery.windowEvents.removeWindowEventsListener", new[] { new { name = "*" } }, jsListenerId); else if(owned is not null) await owned.RemoveWindowEventListeners(); state="Paused. Bulk removal cleared this scope only."; });
+    private Task DisposeScope() => Queue(async () => { active=false; await ReleaseOwned(); state="Scope disposed. Start creates a fresh instance."; });
+    private Task pending = Task.CompletedTask;
+    private Task Queue(Func<Task> action)
+    {
+        var previous = pending;
+        return pending = Execute();
+        async Task Execute() { await previous; if (!Disposed) await Run(action); }
+    }
+    private async Task ReleaseOwned()
+    {
+        try
+        {
+            if(jsReference is not null) await JS.InvokeVoidAsync("bQuery.windowEvents.disposeWindowEventsListener", jsListenerId);
+        }
+        finally
+        {
+            jsReference?.Dispose(); jsReference = null;
+            if(owned is not null) { await owned.DisposeAsync(); owned = null; }
+        }
+    }
+    protected override async ValueTask Cleanup() { await pending; active=false; await ReleaseOwned(); }
+}

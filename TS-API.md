@@ -171,6 +171,7 @@ Interop notes:
 
 - `resize`, `scroll`, and some high-frequency events are throttled (`50ms` default in this module).
 - Events are converted to Blazor-friendly payloads and forwarded through `dotNetRef.invokeMethodAsync(...)`.
+- Removing the last subscriber cancels pending throttled callbacks. Registrations are deduplicated by event name within each scope.
 
 ## `domHelper` namespace
 
@@ -185,12 +186,13 @@ From `module/domHelper.ts`.
 | `removeAttr(selector: string | Element, key: string)` | `void` | Removes an attribute. |
 | `addCls(selector: string | Element, className: string | string[])` | `void` | Adds one or more classes. |
 | `removeCls(selector: string | Element, clsName: string | string[])` | `void` | Removes one or more classes. |
-| `css(element: HTMLElement, name: string | object, value?: string | null)` | `void` | Sets inline styles. |
+| `css(element: HTMLElement, name: string | object, value?: string | null)` | `void` | Sets inline styles; a property name with a null/omitted value removes that property. |
 
 `css(...)` supported forms:
 
 ```ts
 domHelper.css(el, "color", "red");
+domHelper.css(el, "color", null); // removes the inline property
 domHelper.css(el, { color: "red", display: "block" });
 domHelper.css(el, "color:red;display:block");
 ```

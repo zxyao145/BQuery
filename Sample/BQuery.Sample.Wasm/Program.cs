@@ -1,29 +1,12 @@
 using BQuery;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BQuery.Sample.Wasm
-{
-    public class Program
-    {
-        public static async Task Main(string[] args)
-        {
-            var builder = WebAssemblyHostBuilder.CreateDefault(args);
-            builder.RootComponents.Add<App>("#app");
-
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            builder.Services.AddBQuery();
-
-
-            await builder.Build()
-                .RunAsync();
-        }
-    }
-}
+using BQuery.Sample.Common;
+using BQuery.Sample.Wasm;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddRazorComponents().AddInteractiveWebAssemblyComponents();
+builder.Services.AddBQuery();
+var app = builder.Build();
+if (app.Environment.IsDevelopment()) app.UseWebAssemblyDebugging();
+app.UseAntiforgery();
+app.MapStaticAssets();
+app.MapRazorComponents<App>().AddInteractiveWebAssemblyRenderMode().AddAdditionalAssemblies(typeof(Routes).Assembly);
+app.Run();

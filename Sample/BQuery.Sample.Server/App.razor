@@ -1,11 +1,12 @@
-<Router AppAssembly="@typeof(Program).Assembly"
-        AdditionalAssemblies="new[] { typeof(BQuery.Sample.Common.Pages.Index).Assembly }">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p>Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><base href="/" />
+<link rel="icon" type="image/svg+xml" href="_content/BQuery.Sample.Common/icon.svg" />
+<link rel="stylesheet" href="_content/BQuery.Sample.Common/lab.css" />
+<ImportMap /><HeadOutlet @rendermode="InteractiveServer" />
+</head><body>
+<Routes Mode="Server" @rendermode="InteractiveServer" />
+<div id="blazor-error-ui" role="alert">The connection was interrupted. <a href="">Reload</a></div>
+<script src="_content/BQuery/dist/bQuery.min.js"></script>
+<script src="@Assets["_framework/blazor.web.js"]"></script>
+</body></html>

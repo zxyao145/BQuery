@@ -82,7 +82,7 @@ When a generator needs additional metadata, prefer extending attributes on the c
 ### Lifecycle
 
 - `AddBQuery()` registers `Bq` and `BqEvents` as scoped services. Each `BqEvents` instance owns its `_listenerId`, event slots, and `DotNetObjectReference`. Keep subscriptions isolated between scopes.
-- Subscribing directly to `WindowEvents.On...` only adds a .NET handler; the window listener registration API must also be called. See `Sample/BQuery.Sample.Common/Pages/WindowEvents.razor.cs`.
+- Subscribing directly to `WindowEvents.On...` only adds a .NET handler; the window listener registration API must also be called. See `Sample/BQuery.Sample.Common/Pages/Events.razor`.
 - Run browser interop after interactive rendering. Samples typically register listeners in the `firstRender` branch of `OnAfterRenderAsync`.
 - `BqEvents.DisposeAsync()` unregisters the current scope's JS listeners and releases its .NET reference. Preserve handling for repeated disposal and disconnected connections.
 - When a component unsubscribes, avoid removing subscriptions owned by other components in the same scope. Calling `RemoveWindowEventListeners()` without arguments clears all window listeners and event handlers in the current scope.
@@ -130,14 +130,24 @@ Choose verification according to the scope of the change:
 | Public APIs, interop, or lifecycle | Build the solution and verify browser behavior in the affected samples |
 | Build or packaging configuration | Run a Release build and local packaging; inspect static assets in the package |
 
-The repository currently has no dedicated automated test project. Do not describe a successful `dotnet test` exit as evidence of regression coverage. For behavior fixes, establish a reproducible case first, then verify the fix. For event changes, focus on registration, callbacks, unsubscription, and scope disposal.
+Regression tests are under `tests/BQuery.Tests` and target both .NET 8 and .NET 10. Run `dotnet test` and check the test counts. Both runtimes are required to execute all C# tests.
+
+Browser tests are under `src/BQuery/wwwroot/tests`. After a Release solution build, install Chromium with `pnpm --dir src/BQuery/wwwroot exec playwright install chromium`, then run `pnpm --dir src/BQuery/wwwroot test`. The test runner starts and stops all three sample hosts.
+
+Run `python3 tests/verify-package.py` to verify the first Release pack in a clean temporary directory, both framework asset manifests, and a fresh consumer's published assets. The script installs frontend dependencies in its temporary copy.
+
+For behavior fixes, establish a reproducible case first, then verify the fix. For event changes, focus on registration, callbacks, unsubscription, and scope disposal.
 
 Sample entry points:
 
 ```bash
 dotnet run --project Sample/BQuery.Sample.Server
 dotnet run --project Sample/BQuery.Sample.Wasm
-dotnet run --project Sample/BlazorAppAuto/BlazorAppAuto
+dotnet run --project Sample/BQuery.Sample.Auto
 ```
 
-`.github/workflows/dotnet-tag.yml` runs the Release build, test command, packaging, and NuGet publishing when a tag is pushed.
+`.github/workflows/dotnet-tag.yml` validates pull requests, branch pushes, and tags with builds, C# and browser tests, TypeScript checks, and clean packaging. NuGet publishing runs only for tags.
+
+### Sample architecture
+
+Five sibling projects: Common, Client, Server, Wasm, Auto. Wasm and Auto reference the same Client; all UI, eight routes, embedded source and self-hosted fonts live in Common. Hosts choose render mode on Routes and HeadOutlet, and map the Common assembly. Keep Common free of fixed render modes. Ports are 5301/5302/5303. See `Sample/README.md`.

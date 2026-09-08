@@ -1,20 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
-  
   <ItemGroup>
     <SupportedPlatform Include="browser" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.4" />
+    <ProjectReference Include="../../src/BQuery/BQuery.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BQuery\BQuery.csproj" />
+    <EmbeddedResource Include="Pages/**/*.razor;Components/**/*.razor;Components/**/*.cs;wwwroot/lab.js" />
   </ItemGroup>
-
 </Project>

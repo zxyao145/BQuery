@@ -90,6 +90,10 @@ export const css = (
 ) => {
 	if (typeof name === "string") {
 		if (value === null) {
+			if (!name.includes(":")) {
+				element.style.removeProperty(name);
+				return;
+			}
 			const style = name;
 			const cssAttributes = style.split(";");
 			for (let i = 0; i < cssAttributes.length; i++) {

@@ -82,6 +82,9 @@ class Dragger {
 		if (this._isBound && this._trigger !== trigger) {
 			this.unbindDrag();
 		}
+		if (this._container !== container) {
+			this.resetContainerStyle();
+		}
 
 		this._trigger = trigger;
 		this._container = container;
@@ -97,9 +100,7 @@ class Dragger {
 			return;
 		}
 
-		if (this._style === null) {
-			this._style = this._container.getAttribute("style");
-		}
+		this._style = this._container.getAttribute("style");
 
 		const rect = this._container.getBoundingClientRect();
 		this._state.baseLeft = rect.left + window.scrollX;
@@ -110,18 +111,25 @@ class Dragger {
 		this._state.startTranslateY = 0;
 
 		this._container.style.position = "absolute";
-		this._container.style.left = `${this._state.baseLeft}px`;
-		this._container.style.top = `${this._state.baseTop}px`;
+		this._container.style.left = "0px";
+		this._container.style.top = "0px";
 		this._container.style.margin = "0";
-		this._container.style.paddingBottom = "0";
 		this._container.style.transform = "translate3d(0px, 0px, 0px)";
 		this._container.style.willChange = "transform";
+
+		// Measure the containing block's origin, including its border and scroll offset.
+		const origin = this._container.getBoundingClientRect();
+		this._container.style.left = `${rect.left - origin.left}px`;
+		this._container.style.top = `${rect.top - origin.top}px`;
 
 		this._isInitialized = true;
 		this.updateBounds();
 	}
 
 	private updateBounds() {
+		const rect = this._container.getBoundingClientRect();
+		this._state.baseLeft = rect.left + window.scrollX - this._state.translateX;
+		this._state.baseTop = rect.top + window.scrollY - this._state.translateY;
 		const viewportLeft = window.scrollX;
 		const viewportTop = window.scrollY;
 		const viewportRight =
@@ -171,7 +179,10 @@ class Dragger {
 	}
 
 	onPointerDown = (e: PointerEvent) => {
-		if (e.pointerType === "mouse" && e.button !== 0) {
+		if (
+			this._state.isDragging ||
+			(e.pointerType === "mouse" && e.button !== 0)
+		) {
 			return;
 		}
 
@@ -194,19 +205,19 @@ class Dragger {
 	};
 
 	onPointerUp = (e: PointerEvent) => {
-		if (
-			this._state.pointerId !== null &&
-			e.pointerId !== this._state.pointerId
-		) {
+		if (!this._state.isDragging || e.pointerId !== this._state.pointerId) {
 			return;
 		}
-
+		this.onPointerMove.cancel();
+		if (e.type === "pointerup") {
+			this.moveToPointer(e);
+		}
 		this._state.isDragging = false;
 		this._state.pointerId = null;
 		this._trigger.releasePointerCapture?.(e.pointerId);
 	};
 
-	onPointerMove = throttle((e: PointerEvent) => {
+	private moveToPointer(e: PointerEvent) {
 		if (!this._state.isDragging || e.pointerId !== this._state.pointerId) {
 			return;
 		}
@@ -220,7 +231,11 @@ class Dragger {
 		this._state.translateX = clamped.x;
 		this._state.translateY = clamped.y;
 		this.applyTransform();
-	}, dragThrottleMs).bind(this);
+	}
+
+	onPointerMove = throttle((e: PointerEvent) => {
+		this.moveToPointer(e);
+	}, dragThrottleMs);
 
 	onResize = throttle(() => {
 		if (!this._isInitialized) {
@@ -235,7 +250,7 @@ class Dragger {
 		this._state.translateX = clamped.x;
 		this._state.translateY = clamped.y;
 		this.applyTransform();
-	}, dragThrottleMs).bind(this);
+	}, dragThrottleMs);
 
 	bindDrag() {
 		if (this._isBound) {
@@ -265,14 +280,25 @@ class Dragger {
 		window.removeEventListener("resize", this.onResize, false);
 		this._trigger.style.touchAction = this._triggerTouchAction;
 
-		this.onPointerMove.cancel?.();
-		this.onResize.cancel?.();
+		this.onPointerMove.cancel();
+		this.onResize.cancel();
+		if (this._state.pointerId !== null) {
+			this._trigger.releasePointerCapture?.(this._state.pointerId);
+		}
 		this._state.isDragging = false;
 		this._state.pointerId = null;
 		this._isBound = false;
 	}
 
 	resetContainerStyle() {
+		this.onPointerMove.cancel();
+		this.onResize.cancel();
+		if (!this._isInitialized) {
+			return;
+		}
+		if (this._state.pointerId !== null) {
+			this._trigger.releasePointerCapture?.(this._state.pointerId);
+		}
 		if (this._style !== null) {
 			this._container.setAttribute("style", this._style);
 		} else {

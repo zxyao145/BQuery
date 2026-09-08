@@ -1,0 +1,41 @@
+@page "/dom"
+@inherits LabComponent
+<PageHeading Title="DOM" />
+<div class="panel">
+<fieldset disabled="@(!Ready)"><div class="controls"><label>Operation <select @bind="operation">@foreach(var item in operations){<option>@item</option>}</select></label><label>Value <input @bind="value" /></label><button class="primary" @onclick="Apply">Run operation</button><button @onclick="Reset">Reset</button></div></fieldset>
+<div @ref="specimen" id="dom-specimen" class="specimen"><span>Target element</span><input @ref="focusInput" aria-label="Focus target" placeholder="Focus lands here" /></div>
+<code class="call">@Call</code><pre class="result" data-testid="dom-result">@result</pre><p class="error" role="alert">@Error</p></div>
+<details class="panel"><summary>Compatibility: old attribute and focus APIs</summary><p><code>Attr(key, value)</code> is obsolete. Its C# return type cannot return an attribute value; use GetAttr, SetAttr and RemoveAttr. The legacy JS attr function treats empty or null values as reads, so it cannot reliably set an empty attribute. The old JS elementExtensions.focus forwards to focus on an element; prefer Blazor's ElementReference.FocusAsync for new code.</p></details>
+<SourcePanel File="Pages/Dom.razor" />
+@code {
+    private ElementReference specimen, focusInput;
+    private string operation = "Set attribute", value = "Hello, browser", result = "Run an operation to inspect the element.";
+    private static readonly string[] operations = ["Set attribute", "Get attribute", "Remove attribute", "Add class", "Remove class", "Add classes", "Remove classes", "Add CSS", "Set CSS", "Remove CSS", "Custom property", "CSS object (JS)", "CSS declaration (JS)", "Selector attribute (JS)", "Focus", "Legacy focus (JS)"];
+    private string Call => operation switch {
+        "Set attribute" => "await element.SetAttr(\"data-message\", value);", "Get attribute" => "await element.GetAttr(\"data-message\");", "Remove attribute" => "await element.RemoveAttr(\"data-message\");",
+        "Add class" => "await element.AddCls(\"highlight\");", "Remove class" => "await element.RemoveCls(\"highlight\");", "Add classes" => "await element.AddCls([\"rounded\", \"outlined\"]);", "Remove classes" => "await element.RemoveCls([\"rounded\", \"outlined\"]);",
+        "Add CSS" => "await element.AddCss(\"color\", \"#087d68\");", "Set CSS" => "await element.Css(\"color\", \"#8b503a\");", "Remove CSS" => "await element.RemoveCss(\"color\");", "Custom property" => "await element.Css(\"--specimen-color\", \"#087d68\");",
+        "CSS object (JS)" => "bQuery.domHelper.css(element, {'background-color': '#e5f3cd', 'border-radius': '28px'});", "CSS declaration (JS)" => "bQuery.domHelper.css(element, 'background-color:#edf0ff;border-radius:4px');", "Selector attribute (JS)" => "bQuery.domHelper.setAttr('#dom-specimen', 'data-message', value);", "Focus" => "await input.FocusAsync();", _ => "bQuery.elementExtensions.focus(input);" };
+    private Task Apply() => Run(async () => {
+        switch(operation) {
+            case "Set attribute": await specimen.SetAttr("data-message",value); break;
+            case "Get attribute": result = await specimen.GetAttr("data-message") ?? "(missing)"; return;
+            case "Remove attribute": await specimen.RemoveAttr("data-message"); break;
+            case "Add class": await specimen.AddCls("highlight"); break;
+            case "Remove class": await specimen.RemoveCls("highlight"); break;
+            case "Add classes": await specimen.AddCls(new List<string>{"rounded","outlined"}); break;
+            case "Remove classes": await specimen.RemoveCls(new List<string>{"rounded","outlined"}); break;
+            case "Add CSS": await specimen.AddCss("color","#087d68"); break;
+            case "Set CSS": await specimen.Css("color","#8b503a"); break;
+            case "Remove CSS": await specimen.RemoveCss("color"); break;
+            case "Custom property": await specimen.Css("--specimen-color","#087d68"); break;
+            case "CSS object (JS)": await JS.InvokeVoidAsync("bQuery.domHelper.css",specimen,new Dictionary<string,string> { ["background-color"]="#e5f3cd",["border-radius"]="28px" }); break;
+            case "CSS declaration (JS)": await JS.InvokeVoidAsync("bQuery.domHelper.css",specimen,"background-color:#edf0ff;border-radius:4px"); break;
+            case "Selector attribute (JS)": await JS.InvokeVoidAsync("bQuery.domHelper.setAttr","#dom-specimen","data-message",value); break;
+            case "Focus": await focusInput.FocusAsync(); break;
+            case "Legacy focus (JS)": await JS.InvokeVoidAsync("bQuery.elementExtensions.focus",focusInput); break;
+        }
+        result = await Module!.InvokeAsync<string>("inspect", specimen);
+    });
+    private Task Reset() => Run(async () => { await specimen.RemoveAttr("data-message"); await specimen.RemoveAttr("style"); await specimen.RemoveCls(new List<string>{"highlight","rounded","outlined"}); value="Hello, browser"; result=await Module!.InvokeAsync<string>("inspect",specimen); });
+}

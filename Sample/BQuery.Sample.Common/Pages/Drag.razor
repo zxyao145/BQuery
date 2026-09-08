@@ -1,0 +1,93 @@
+@page "/drag"
+@inherits LabComponent
+<PageHeading Title="Drag" />
+@if (constrain && bound)
+{
+    <div class="viewport-guide" aria-hidden="true"><span>Browser viewport boundary</span></div>
+}
+<section class="panel">
+    <fieldset disabled="@(!Ready)">
+        <div class="controls">
+            <label>API <select @bind="api" @bind:after="Rebind"><option>C# BqDrag</option><option>JS bindDrag</option><option>JS addDraggable</option></select></label>
+            <label><input type="checkbox" @bind="useHandle" @bind:after="Rebind" /> Dedicated handle</label>
+            <label><input type="checkbox" @bind="constrain" @bind:after="Rebind" /> Keep inside browser viewport</label>
+            <button class="primary" @onclick="Bind">Bind</button>
+            <button @onclick="Unbind">Unbind</button>
+            <button @onclick="Reset">Reset position</button>
+        </div>
+        <div class="controls">
+            <label>Stage <select @bind="stage" @bind:after="Rebind"><option value="open">Open starting area</option><option value="scrollable">Scrollable parent (advanced)</option></select></label>
+        </div>
+    </fieldset>
+    <p class="muted" id="drag-instructions">
+        @if (scrollable)
+        {
+            <text>This parent clips overflowing content. The constraint still uses the browser viewport, not this parent.</text>
+        }
+        else
+        {
+            <text>Drag toward the green browser edges. The dotted area is not a boundary. Uncheck to allow movement off-screen; Reset position restores the card.</text>
+        }
+    </p>
+    <div class="drag-stage @(scrollable ? "scrollable" : "")" data-testid="drag-stage">
+        <span class="drag-stage-label">Starting area · positioned parent</span>
+        <div class="drag-space">
+            <article class="drag-card" @ref="card" data-testid="drag-card" aria-describedby="drag-instructions">
+                <header @ref="handle" data-testid="drag-handle">⋮⋮ Drag me</header>
+                <p>@(useHandle ? "Only the header moves this card." : "Grab anywhere on this card.")<br /><br />@(constrain ? "Browser viewport constraint enabled." : "Viewport constraint disabled.")</p>
+            </article>
+        </div>
+    </div>
+    <p class="tag" data-testid="drag-state">@(bound ? "Bound" : "Unbound") · @api</p>
+    <code class="call">@Call</code>
+    <p class="error" role="alert">@Error</p>
+
+</section>
+<SourcePanel File="Pages/Drag.razor" />
+@code {
+    private ElementReference card, handle;
+    private bool useHandle=true, constrain=true, bound;
+    private string stage = "open";
+    private bool scrollable => stage == "scrollable";
+    private string api="C# BqDrag";
+    private DragOptions? boundOptions;
+    private string boundApi="";
+    private Task pending = Task.CompletedTask;
+    private string Call => api switch
+    {
+        "C# BqDrag" => $"await Bq.Drag.BindDragAsync(card, new DragOptions {{ DragElement = {(useHandle ? "handle" : "null")}, InViewport = {constrain.ToString().ToLowerInvariant()} }});",
+        "JS bindDrag" => $"bQuery.drag.bindDrag(card, {{ dragElement: {(useHandle ? "handle" : "null")}, inViewport: {constrain.ToString().ToLowerInvariant()} }});",
+        _ => $"bQuery.drag.addDraggable({(useHandle ? "handle" : "card")}, card, {constrain.ToString().ToLowerInvariant()});"
+    };
+    protected override Task Initialize() => Bind();
+    private Task Bind() => Queue(async () => {
+        await RemoveBinding();
+        if (Disposed) return;
+        boundOptions=new DragOptions { DragElement=useHandle ? handle : null, InViewport=constrain };
+        boundApi=api;
+        if(api=="C# BqDrag") await Bq.Drag.BindDragAsync(card,boundOptions);
+        else if(api=="JS bindDrag") await JS.InvokeVoidAsync("bQuery.drag.bindDrag",card,boundOptions);
+        else await JS.InvokeVoidAsync("bQuery.drag.addDraggable",useHandle ? handle : card,card,constrain);
+        bound=true;
+    });
+    private Task Queue(Func<Task> action)
+    {
+        var previous = pending;
+        return pending = Execute();
+        async Task Execute() { await previous; if (!Disposed) await Run(action); }
+    }
+    private Task Rebind() => Bind();
+    private Task Unbind() => Queue(RemoveBinding);
+    private async Task RemoveBinding() {
+        if(!bound) return;
+        if(boundApi=="C# BqDrag") await Bq.Drag.RemoveDragAsync(card,boundOptions);
+        else await JS.InvokeVoidAsync("bQuery.drag.removeDraggable",boundOptions?.DragElement ?? card);
+        bound=false;
+    }
+    private Task Reset() => Queue(async () => {
+        if(!bound) return;
+        if(boundApi=="C# BqDrag") await Bq.Drag.ResetDragPositionAsync(card,boundOptions);
+        else await JS.InvokeVoidAsync("bQuery.drag.resetDraggableElePosition",boundOptions?.DragElement ?? card);
+    });
+    protected override async ValueTask Cleanup() { await pending; await RemoveBinding(); }
+}

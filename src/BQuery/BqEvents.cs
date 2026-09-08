@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace BQuery;
 
@@ -14,6 +15,7 @@ public partial class BqEvents : IAsyncDisposable
     private readonly DotNetObjectReference<BqEvents> _eventsReference;
     private readonly string _listenerId = Guid.NewGuid().ToString("N");
     private readonly HashSet<WindowEvent> _registeredEvents = [];
+    private readonly SemaphoreSlim _listenerLock = new(1, 1);
     private bool _disposed;
 
 
@@ -36,112 +38,136 @@ public partial class BqEvents : IAsyncDisposable
 
     public async Task AddWindowEventListeners(params WindowEvent[] windowEvents)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var eventList = windowEvents
-            .Where(static e => !string.IsNullOrWhiteSpace(e.Name))
-            .Distinct()
-            .ToArray();
-
-        if (eventList.Length == 0)
+        await _listenerLock.WaitAsync();
+        try
         {
-            return;
-        }
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var eventList = windowEvents
+                .Where(static e => !string.IsNullOrWhiteSpace(e.Name))
+                .Distinct()
+                .ToArray();
+            if (eventList.Length == 0)
+            {
+                return;
+            }
 
-        foreach (var windowEvent in eventList)
+            await _jsRuntime.InvokeVoidAsync(
+                WindowEventsConstants.AddWindowEventsListenerMethod,
+                eventList, _listenerId, _eventsReference);
+            _registeredEvents.UnionWith(eventList);
+        }
+        finally
         {
-            _registeredEvents.Add(windowEvent);
+            _listenerLock.Release();
         }
-
-        await _jsRuntime.InvokeVoidAsync(
-            WindowEventsConstants.AddWindowEventsListenerMethod,
-            eventList,
-            _listenerId,
-            _eventsReference
-            );
     }
 
     /// <summary>
-    /// if windowEvents is empty, it will remove all event listeners.
-    /// else it will remove the specified event listeners.
+    /// Removes selected listeners. With no arguments, clears all listeners and handlers in this scope.
     /// </summary>
-    /// <param name="windowEvents"></param>
-    /// <returns></returns>
     public async Task RemoveWindowEventListeners(params WindowEvent[] windowEvents)
     {
-        if (_disposed)
+        await _listenerLock.WaitAsync();
+        try
         {
-            return;
-        }
-
-        if (windowEvents.Length == 0)
-        {
-            foreach (var eventSlot in this.EventSlots)
+            if (_disposed)
             {
-                eventSlot.Value.Clear();
+                return;
             }
-            _registeredEvents.Clear();
+            if (windowEvents.Length == 0)
+            {
+                await _jsRuntime.InvokeVoidAsync(
+                    WindowEventsConstants.DisposeWindowEventsListenerMethod, _listenerId);
+                foreach (var eventSlot in this.EventSlots.Values)
+                {
+                    eventSlot.Clear();
+                }
+                _registeredEvents.Clear();
+                return;
+            }
+
+            var eventList = windowEvents
+                .Where(static e => !string.IsNullOrWhiteSpace(e.Name))
+                .Distinct()
+                .ToArray();
+            if (eventList.Length == 0)
+            {
+                return;
+            }
 
             await _jsRuntime.InvokeVoidAsync(
-                    WindowEventsConstants.DisposeWindowEventsListenerMethod,
-                    _listenerId);
-            return;
+                WindowEventsConstants.RemoveWindowEventsListenerMethod, eventList, _listenerId);
+            _registeredEvents.ExceptWith(eventList);
         }
-
-        var eventList = windowEvents
-            .Where(static e => !string.IsNullOrWhiteSpace(e.Name))
-            .Distinct()
-            .ToArray();
-
-        if (eventList.Length == 0)
+        finally
         {
-            return;
+            _listenerLock.Release();
         }
-
-        foreach (var windowEvent in eventList)
-        {
-            _registeredEvents.Remove(windowEvent);
-        }
-
-        await _jsRuntime.InvokeVoidAsync(
-            WindowEventsConstants.RemoveWindowEventsListenerMethod,
-            eventList,
-            _listenerId);
     }
 
     public async Task AddWindowEventListener<T>(WindowEvent windowEvent, Func<T, Task> func)
     {
-        var eventSlot = this.EventSlots[windowEvent];
-        ((EventSlot<T>)eventSlot).Async += func;
-
-        _registeredEvents.Add(windowEvent);
-        await _jsRuntime.InvokeVoidAsync(
-            WindowEventsConstants.AddWindowEventListenerMethod,
-            windowEvent,
-            _listenerId,
-            _eventsReference
-            );
+        await _listenerLock.WaitAsync();
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var eventSlot = (EventSlot<T>)this.EventSlots[windowEvent];
+            eventSlot.Async += func;
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync(
+                    WindowEventsConstants.AddWindowEventListenerMethod,
+                    windowEvent, _listenerId, _eventsReference);
+                _registeredEvents.Add(windowEvent);
+            }
+            catch
+            {
+                eventSlot.Async -= func;
+                throw;
+            }
+        }
+        finally
+        {
+            _listenerLock.Release();
+        }
     }
 
     public async Task RemoveWindowEventListener<T>(WindowEvent windowEvent, Func<T, Task> func)
     {
-        var eventSlot = this.EventSlots[windowEvent];
-        ((EventSlot<T>)eventSlot).Async -= func;
-
-        if (eventSlot.Count == 0)
+        await _listenerLock.WaitAsync();
+        try
         {
-            _registeredEvents.Remove(windowEvent);
-            await _jsRuntime.InvokeVoidAsync(
-                WindowEventsConstants.RemoveWindowEventListenerMethod,
-                windowEvent,
-                _listenerId
-            );
+            if (_disposed)
+            {
+                return;
+            }
+            var eventSlot = (EventSlot<T>)this.EventSlots[windowEvent];
+            int previousCount = eventSlot.Count;
+            eventSlot.Async -= func;
+            if (previousCount > 0 && eventSlot.Count == 0)
+            {
+                try
+                {
+                    await _jsRuntime.InvokeVoidAsync(
+                        WindowEventsConstants.RemoveWindowEventListenerMethod,
+                        windowEvent, _listenerId);
+                    _registeredEvents.Remove(windowEvent);
+                }
+                catch
+                {
+                    eventSlot.Async += func;
+                    throw;
+                }
+            }
+        }
+        finally
+        {
+            _listenerLock.Release();
         }
     }
 
-
     /// <summary>
-    /// Disposes the JavaScript module reference and unregisters scoped window listeners.
+    /// Unregisters scoped window listeners and releases the .NET reference and handlers.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
@@ -149,27 +175,32 @@ public partial class BqEvents : IAsyncDisposable
         {
             return;
         }
-
         _disposed = true;
 
+        // Wait for in-flight registrations before releasing the callback reference.
+        await _listenerLock.WaitAsync();
         try
         {
             if (_registeredEvents.Count > 0)
             {
                 await _jsRuntime.InvokeVoidAsync(
-                    WindowEventsConstants.DisposeWindowEventsListenerMethod,
-                    _listenerId);
+                    WindowEventsConstants.DisposeWindowEventsListenerMethod, _listenerId);
             }
         }
         catch (Exception exception) when (CanIgnoreDisposeInteropException(exception))
         {
         }
-
-        _registeredEvents.Clear();
-        _eventsReference.Dispose();
+        finally
+        {
+            _registeredEvents.Clear();
+            foreach (var eventSlot in this.EventSlots.Values)
+            {
+                eventSlot.Clear();
+            }
+            _eventsReference.Dispose();
+            _listenerLock.Release();
+        }
     }
-
-
 
 
     internal abstract class EventSlot

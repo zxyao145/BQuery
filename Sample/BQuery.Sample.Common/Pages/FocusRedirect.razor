@@ -1,0 +1,5 @@
+@page "/focus"
+@inject NavigationManager Navigation
+<PageTitle>Drag Lab · BQuery</PageTitle>
+<p>Opening <a href="/drag">Drag Lab</a>…</p>
+@code { protected override void OnInitialized() => Navigation.NavigateTo("/drag", replace: true); }

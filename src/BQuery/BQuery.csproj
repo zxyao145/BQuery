@@ -56,13 +56,27 @@
 		</DefaultItemExcludes>
 	</PropertyGroup>
 
-	<Target Name="RunGulp" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Release' ">
-		<Exec WorkingDirectory="wwwroot" Command="pnpm run build" />
+	<ItemGroup>
+		<BQueryJavaScriptInput Include="wwwroot/src/**/*.ts;wwwroot/vite.config.js;wwwroot/package.json;wwwroot/pnpm-lock.yaml;wwwroot/pnpm-workspace.yaml;wwwroot/tsconfig.json" />
+		<Content Remove="wwwroot/tests/**;wwwroot/playwright.config.ts" />
+	</ItemGroup>
 
+	<Target Name="BuildJavaScript"
+			BeforeTargets="DispatchToInnerBuilds;ResolveProjectStaticWebAssets"
+			Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true'"
+			Inputs="@(BQueryJavaScriptInput);$(MSBuildProjectFullPath)"
+			Outputs="wwwroot/dist/bQuery.min.js;wwwroot/bQuery.min.js">
+		<Exec WorkingDirectory="wwwroot" Command="pnpm run build" />
+	</Target>
+
+	<Target Name="IncludeJavaScriptAssets"
+			BeforeTargets="ResolveProjectStaticWebAssets"
+			DependsOnTargets="BuildJavaScript"
+			Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true'">
 		<ItemGroup>
-			<None Include="wwwroot\bQuery.min.js" />
-			<None Include="wwwroot\dist\bQuery.min.js" />
-			<None Include="wwwroot\dist\BQuery.lib.module.js" />
+			<!-- Explicit items are needed on the first build, before these files exist at evaluation time. -->
+			<Content Remove="wwwroot/bQuery.min.js;wwwroot/dist/bQuery.min.js" />
+			<Content Include="wwwroot/bQuery.min.js;wwwroot/dist/bQuery.min.js" />
 		</ItemGroup>
 	</Target>
 </Project>

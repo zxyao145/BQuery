@@ -1,0 +1,13 @@
+@inherits LabComponent
+<section class="panel" data-testid="subscriber-@Name"><h3>Subscriber @Name</h3><p class="muted">Independent delegate on the shared Bq service.</p><div class="controls"><button disabled="@(!Ready)" @onclick="Toggle">@(active ? "Pause" : "Start") @Name</button><button @onclick="() => count = 0">Clear @Name</button></div><div class="metric"><strong data-testid="count-@Name">@count</strong><span>WINDOW CLICKS · @(active ? "LISTENING" : "PAUSED")</span></div><code class="call">await Bq.AddWindowEventListener&lt;MouseEventArgs&gt;(WindowEvent.OnClick, OnClick);</code><p class="error" role="alert">@Error</p></section>
+@code {
+    [Parameter] public string Name { get; set; } = "A";
+    private bool active;
+    private int count;
+    private Task OnClick(MouseEventArgs args) => InvokeAsync(() => { if (!Disposed && active) { count++; StateHasChanged(); } });
+    private Task Toggle() => Run(async () => {
+        if (active) { active=false; await Bq.RemoveWindowEventListener<MouseEventArgs>(WindowEvent.OnClick, OnClick); }
+        else { await Bq.AddWindowEventListener<MouseEventArgs>(WindowEvent.OnClick, OnClick); active=true; }
+    });
+    protected override async ValueTask Cleanup() { active=false; await Bq.RemoveWindowEventListener<MouseEventArgs>(WindowEvent.OnClick, OnClick); }
+}

@@ -88,7 +88,7 @@ The repository samples use the UMD build (`bQuery.min.js`).
 ### 3. Use `Bq` in components
 
 ```razor
-+ @inject Bq bq
+@inject Bq bq
 @implements IAsyncDisposable
 
 @code {
@@ -99,8 +99,7 @@ The repository samples use the UMD build (`bQuery.min.js`).
             return;
         }
 
-        await bq.AddWindowEventListeners(WindowEvent.OnResize, WindowEvent.OnScroll);
-        bq.WindowEvents.OnResizeAsync += OnResizeAsync;
+        await bq.AddWindowEventListener<ResizeEventArgs>(WindowEvent.OnResize, OnResizeAsync);
     }
 
     private Task OnResizeAsync(ResizeEventArgs args)
@@ -111,8 +110,8 @@ The repository samples use the UMD build (`bQuery.min.js`).
 
     public async ValueTask DisposeAsync()
     {   
-        // If listening for Window events
-        await bq.RemoveWindowEventListeners();
+        // Remove only this component's callback. Other subscribers share the scope.
+        await bq.RemoveWindowEventListener<ResizeEventArgs>(WindowEvent.OnResize, OnResizeAsync);
     }
 }
 ```
@@ -174,8 +173,11 @@ var ua2 = await jsRuntime.GetUserAgentAsync(); // IJSRuntime extension
 
 - `Sample/BQuery.Sample.Wasm`
 - `Sample/BQuery.Sample.Server`
+- `Sample/BQuery.Sample.Client` — shared WebAssembly bootstrap for Wasm and Auto
 - `Sample/BQuery.Sample.Common`
-- `Sample/BlazorAppAuto`
+- `Sample/BQuery.Sample.Auto`
+
+The three .NET 10 hosts share the same English interactive laboratory. Server (5301), Wasm (5302), and Auto (5303) use Interactive Server, WebAssembly, and Auto respectively. See [Sample guide and coverage](Sample/README.md) for startup commands, routes, lifecycle notes and verification.
 
 ## License
 

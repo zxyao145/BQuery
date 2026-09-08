@@ -88,7 +88,7 @@ Los ejemplos del repositorio utilizan la compilación UMD (`bQuery.min.js`).
 ### 3. Utilizar `Bq` en los componentes
 
 ```razor
-+ @inject Bq bq
+@inject Bq bq
 @implements IAsyncDisposable
 
 @code {
@@ -99,8 +99,7 @@ Los ejemplos del repositorio utilizan la compilación UMD (`bQuery.min.js`).
             return;
         }
 
-        await bq.AddWindowEventListeners(WindowEvent.OnResize, WindowEvent.OnScroll);
-        bq.WindowEvents.OnResizeAsync += OnResizeAsync;
+        await bq.AddWindowEventListener<ResizeEventArgs>(WindowEvent.OnResize, OnResizeAsync);
     }
 
     private Task OnResizeAsync(ResizeEventArgs args)
@@ -111,8 +110,8 @@ Los ejemplos del repositorio utilizan la compilación UMD (`bQuery.min.js`).
 
     public async ValueTask DisposeAsync()
     {   
-        // Si estás escuchando eventos de ventana
-        await bq.RemoveWindowEventListeners();
+        // Quita solo este callback; otros componentes comparten el mismo ámbito.
+        await bq.RemoveWindowEventListener<ResizeEventArgs>(WindowEvent.OnResize, OnResizeAsync);
     }
 }
 ```
@@ -174,8 +173,11 @@ var ua2 = await jsRuntime.GetUserAgentAsync(); // Extensión de IJSRuntime
 
 - `Sample/BQuery.Sample.Wasm`
 - `Sample/BQuery.Sample.Server`
+- `Sample/BQuery.Sample.Client` — inicio de WebAssembly compartido por Wasm y Auto
 - `Sample/BQuery.Sample.Common`
-- `Sample/BlazorAppAuto`
+- `Sample/BQuery.Sample.Auto`
+
+Los tres hosts de .NET 10 comparten el mismo laboratorio interactivo en inglés. Server (5301), Wasm (5302) y Auto (5303) utilizan los modos Interactive Server, WebAssembly y Auto, respectivamente. Consulta la [guía de ejemplos y cobertura](Sample/README.md) para ver comandos de inicio, rutas, ciclo de vida y verificaciones.
 
 ## Licencia
 

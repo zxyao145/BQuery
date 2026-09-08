@@ -1,0 +1,30 @@
+@page "/elements"
+@inherits LabComponent
+<PageHeading Title="Element Geometry" />
+<section class="panel"><fieldset disabled="@(!Ready)"><div class="controls"><label>API <select @bind="method">@foreach(var item in methods){<option>@item</option>}</select></label><label><input type="checkbox" @bind="outer" /> Outer box</label><label>Width <input type="range" min="180" max="550" @bind="width" /> @width px</label><label>Height <input type="range" min="120" max="300" @bind="height" /> @height px</label><button class="primary" @onclick="Measure">Measure</button><button @onclick="Reset">Reset</button></div></fieldset><div @ref="element" class="geometry" style="width:@(width)px;height:@(height)px"><div class="geometry-content">Scroll this grid ↘<br />650 × 460 px content</div></div><code class="call">@Call</code><pre class="result" data-testid="measurement">@result</pre><p class="error" role="alert">@Error</p></section><p class="muted">Outer measurements include borders (not margins). Inner measurements use client dimensions. ElePosition returns X, Y, Width and Height; scroll pairs return [left, top].</p><SourcePanel File="Pages/Elements.razor" />
+@code {
+    private string method = "GetWidthAndHeightAsync", result = "";
+    private ElementReference element;
+    private bool outer = true;
+    private int width = 320, height = 200;
+    private static readonly string[] methods = ["GetWidthAsync", "GetHeightAsync", "GetWidthAndHeightAsync", "GetScrollWidthAsync", "GetScrollHeightAsync", "GetScrollWidthAndHeightAsync", "GetScrollLeftAsync", "GetScrollTopAsync", "GetScrollLeftAndTopAsync", "GetPositionInViewportAsync", "GetPositionInDocAsync", "getElementLeftInDoc (JS)", "getElementTopInDoc (JS)"];
+    private string Call => method.Contains("(JS)") ? "bQuery.elementExtensions." + method.Replace(" (JS)", "") + "(...)" : "await element." + method + "(...);";
+    protected override Task Initialize() => Measure();
+    private Task Measure() => Run(async () => { object value = method switch {
+        "GetWidthAsync" => await element.GetWidthAsync(outer),
+        "GetHeightAsync" => await element.GetHeightAsync(outer),
+        "GetWidthAndHeightAsync" => await element.GetWidthAndHeightAsync(outer),
+        "GetScrollWidthAsync" => await element.GetScrollWidthAsync(),
+        "GetScrollHeightAsync" => await element.GetScrollHeightAsync(),
+        "GetScrollWidthAndHeightAsync" => await element.GetScrollWidthAndHeightAsync(),
+        "GetScrollLeftAsync" => await element.GetScrollLeftAsync(),
+        "GetScrollTopAsync" => await element.GetScrollTopAsync(),
+        "GetScrollLeftAndTopAsync" => await element.GetScrollLeftAndTopAsync(),
+        "GetPositionInViewportAsync" => await element.GetPositionInViewportAsync(),
+        "GetPositionInDocAsync" => await element.GetPositionInDocAsync(),
+        "getElementLeftInDoc (JS)" => await JS.InvokeAsync<double>("bQuery.elementExtensions.getElementLeftInDoc", element),
+        "getElementTopInDoc (JS)" => await JS.InvokeAsync<double>("bQuery.elementExtensions.getElementTopInDoc", element),
+        _ => throw new InvalidOperationException("Unknown measurement")
+    }; result = JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }); });
+    private Task Reset() => Run(async () => { width=320; height=200; outer=true; await Module!.InvokeVoidAsync("scrollElementTop", element); method="GetWidthAndHeightAsync"; result="Reset. Measure the current layout."; });
+}

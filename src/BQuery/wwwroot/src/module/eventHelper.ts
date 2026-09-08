@@ -19,7 +19,7 @@ type EventHandler = EventListener & {
 
 type ListenerIdInfo = {
 	dotNetRef: DotNetEventSink;
-	events: Set<EventInfo>;
+	events: Set<string>;
 };
 
 type ListenerRegistration = {
@@ -144,6 +144,7 @@ const invokeDotNet = (
 			.invokeMethodAsync(methodIdentifier, ...args)
 			.catch((error) => {
 				if (isDisposedDotNetReferenceError(error)) {
+					disposeWindowEventsListener(listenerId);
 					return;
 				}
 
@@ -162,9 +163,6 @@ const createEventHandler = <TEvent extends Event>(
 ): ListenerRegistration => {
 	const createHandler = (): EventHandler => (event: Event) => {
 		const args = convert(event as TEvent);
-		if (event.type === "keydown") {
-			console.log(`event: ${event.type}, args: `, methodIdentifier, args);
-		}
 		invokeDotNet(event.type, methodIdentifier, args);
 	};
 
@@ -297,13 +295,17 @@ const addWindowEventListener = (
 	dotNetRef: DotNetEventSink,
 ) => {
 	const eventName = evt.name;
+	const listenerRegistration = eventMap[eventName];
+	if (!Object.hasOwn(eventMap, eventName)) {
+		throw new Error(`Unsupported window event: ${eventName}`);
+	}
 	if (!listenersDotNetRef.has(listenerId)) {
 		listenersDotNetRef.set(listenerId, {
 			dotNetRef: dotNetRef,
-			events: new Set<EventInfo>([evt]),
+			events: new Set([eventName]),
 		});
 	} else {
-		listenersDotNetRef.get(listenerId)?.events.add(evt);
+		listenersDotNetRef.get(listenerId)?.events.add(eventName);
 	}
 	const listenerIds = eventListeners.get(eventName);
 	if (listenerIds) {
@@ -311,7 +313,6 @@ const addWindowEventListener = (
 		return;
 	}
 	eventListeners.set(eventName, new Set<string>([listenerId]));
-	const listenerRegistration = eventMap[eventName];
 	autoDebug(() => {
 		console.log(
 			"add event listener for event: ",
@@ -326,15 +327,9 @@ const addWindowEventListener = (
 const removeWindowEventListener = (evt: EventInfo, listenerId: string) => {
 	const eventName = evt.name;
 	const listenerIdInfo = listenersDotNetRef.get(listenerId);
-	if (!listenerIdInfo) {
+	if (!listenerIdInfo?.events.delete(eventName)) {
 		return;
 	}
-
-	// new events
-	const newEventInfos = [...listenerIdInfo.events].filter(
-		(e) => e.name !== eventName,
-	);
-	listenerIdInfo.events = new Set(newEventInfos);
 
 	// 不存在 event 了，删除
 	if (listenerIdInfo.events.size === 0) {
@@ -360,6 +355,7 @@ const removeWindowEventListener = (evt: EventInfo, listenerId: string) => {
 			);
 		});
 		window.removeEventListener(eventName, listenerRegistration.handler);
+		listenerRegistration.handler.cancel?.();
 	}
 };
 
@@ -384,6 +380,12 @@ const addWindowEventsListener = (
 	if (events.some((e) => e.name === "*")) {
 		bindAllWindowEvent(listenerId, dotNetRef);
 		return;
+	}
+	// Validate the whole batch before changing either registration map.
+	for (const event of events) {
+		if (event.name && !Object.hasOwn(eventMap, event.name)) {
+			throw new Error(`Unsupported window event: ${event.name}`);
+		}
 	}
 	autoDebug(() => {
 		console.log("add events: ", events);
@@ -424,7 +426,7 @@ const disposeWindowEventsListener = (listenerId: string) => {
 	if (listenerIdInfo) {
 		const events = [...listenerIdInfo.events];
 		for (let i = 0; i < events.length; i++) {
-			removeWindowEventListener(events[i], listenerId);
+			removeWindowEventListener({ name: events[i] }, listenerId);
 		}
 	}
 };

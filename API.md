@@ -18,7 +18,8 @@ Load one of the distributed scripts on your host page:
 <script src="_content/BQuery/dist/bQuery.min.js"></script>
 ```
 
-`bQuery.min.mjs` is also available if you prefer ES module loading.
+The package builds UMD output only; `bQuery.min.mjs` is not distributed.
+The Blazor Web App initializer also loads this script and waits for it before startup.
 
 ## `ServiceExtension`
 
@@ -104,7 +105,7 @@ Methods:
 | `RemoveWindowEventListeners(params WindowEvent[] windowEvents)` | `Task` | Removes selected events; if empty, removes all listeners and clears local handlers. |
 | `AddWindowEventListener<T>(WindowEvent windowEvent, Func<T, Task> func)` | `Task` | Adds an async callback to an event slot and ensures JS listener binding. |
 | `RemoveWindowEventListener<T>(WindowEvent windowEvent, Func<T, Task> func)` | `Task` | Removes one async callback and unbinds JS event when slot count reaches zero. |
-| `DisposeAsync()` | `ValueTask` | Unregisters scoped listeners and disposes DotNet reference. |
+| `DisposeAsync()` | `ValueTask` | Unregisters scoped listeners and always releases the DotNet reference and handlers, including when JS cleanup fails. |
 
 Generated events:
 
@@ -191,7 +192,7 @@ public static class ElementReferenceExtensions
 | `RemoveCls(this ElementReference element, string className)` | `ValueTask` | Removes one class. |
 | `RemoveCls(this ElementReference element, List<string> classNames)` | `ValueTask` | Removes multiple classes. |
 | `AddCss(this ElementReference element, string name, string value)` | `ValueTask` | Sets one CSS property. |
-| `RemoveCss(this ElementReference element, string name)` | `ValueTask` | Compatibility helper that forwards to `Css(name, null)`. |
+| `RemoveCss(this ElementReference element, string name)` | `ValueTask` | Removes an inline CSS property, including custom properties. |
 | `Css(this ElementReference element, string name, string? value = null)` | `ValueTask` | General CSS setter helper. |
 
 ### Element measurement and position extensions

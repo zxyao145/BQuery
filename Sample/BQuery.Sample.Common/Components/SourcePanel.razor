@@ -1,0 +1,19 @@
+@inject IJSRuntime JS
+<details class="source-panel"><summary>View complete source <span>↗</span></summary><div class="source-toolbar"><span>@File</span><button disabled="@(!RendererInfo.IsInteractive)" @onclick="Copy">Copy source</button><span role="status">@status</span></div><pre><code>@source</code></pre></details>
+@code {
+    [Parameter] public string File { get; set; } = "";
+    private string source = "";
+    private string status = "";
+    protected override void OnParametersSet()
+    {
+        var assembly = typeof(Routes).Assembly;
+        using var stream = assembly.GetManifestResourceStream($"BQuery.Sample.Common.{File.Replace('/', '.')}");
+        using var reader = stream is null ? null : new StreamReader(stream);
+        source = reader?.ReadToEnd() ?? "Source unavailable.";
+    }
+    private async Task Copy()
+    {
+        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", source); status = "Copied"; }
+        catch (JSException) { status = "Clipboard unavailable. Select and copy the source below."; }
+    }
+}

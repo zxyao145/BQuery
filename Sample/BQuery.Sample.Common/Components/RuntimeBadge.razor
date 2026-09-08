@@ -1,0 +1,2 @@
+<div class="runtime" data-testid="runtime" data-renderer="@RendererInfo.Name" data-interactive="@RendererInfo.IsInteractive.ToString().ToLowerInvariant()"><span class="status-dot"></span>@Mode <span class="muted">/</span> @RendererInfo.Name <span class="muted">· @(RendererInfo.IsInteractive ? "Ready" : "Connecting")</span></div>
+@code { [CascadingParameter(Name = "ConfiguredMode")] public string Mode { get; set; } = "Server"; }

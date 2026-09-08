@@ -1,0 +1,11 @@
+@page "/"
+@inherits LabComponent
+<PageHeading Title="Browser Info" />
+<section class="panel"><p>BQuery @version</p><fieldset disabled="@(!Ready)"><div class="controls"><label>API <select @bind="api"><option>Bq</option><option>IJSRuntime extension</option><option>JavaScript</option></select></label><button class="primary" @onclick="Read">Read user agent</button><button @onclick='() => agent = ""'>Reset</button></div></fieldset><output class="result" style="display:block" data-testid="user-agent">@agent</output><code class="call">@Call</code><p class="error" role="alert">@Error</p></section>
+<SourcePanel File="Pages/Overview.razor" />
+@code {
+    private string api = "Bq", agent = "", version = "…";
+    private string Call => api == "Bq" ? "await Bq.GetUserAgentAsync()" : api == "JavaScript" ? "bQuery.navigator.getUserAgent()" : "await JS.GetUserAgentAsync()";
+    protected override async Task Initialize() { version = await Module!.InvokeAsync<string>("version"); await Read(); }
+    private Task Read() => Run(async () => agent = api switch { "Bq" => await Bq.GetUserAgentAsync(), "JavaScript" => await JS.InvokeAsync<string>("bQuery.navigator.getUserAgent"), _ => await JS.GetUserAgentAsync() });
+}

@@ -1,7 +1,10 @@
 name: .NET
 
 on:
+  pull_request:
   push:
+    branches:
+      - '**'
     tags:
       - '*'
 
@@ -30,6 +33,15 @@ jobs:
       working-directory: src/BQuery/wwwroot
       run: pnpm install --frozen-lockfile
       
+    - name: TypeScript checks
+      working-directory: src/BQuery/wwwroot
+      run: |
+        pnpm run typecheck
+        pnpm run lint
+
+    - name: Verify first package and consumer assets
+      run: python3 tests/verify-package.py
+
     - name: Restore dependencies
       run: dotnet restore
 
@@ -39,13 +51,26 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
       
+    - name: Install browser
+      working-directory: src/BQuery/wwwroot
+      run: pnpm exec playwright install --with-deps chromium
+
+    - name: Browser regressions and samples
+      working-directory: src/BQuery/wwwroot
+      run: pnpm test
+
     - name: Extract version from tag
+      if: startsWith(github.ref, 'refs/tags/')
       id: version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
     - name: Package
-      run: dotnet pack src/BQuery/BQuery.csproj --configuration Release --output "./release/" -p:PackageVersion=${{ steps.version.outputs.VERSION }}
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        PACKAGE_VERSION: ${{ steps.version.outputs.VERSION }}
+      run: dotnet pack src/BQuery/BQuery.csproj --configuration Release --no-build --no-restore --output "./release/" -p:PackageVersion="$PACKAGE_VERSION"
     
-    - name: Publish 
+    - name: Publish
+      if: startsWith(github.ref, 'refs/tags/')
       run: dotnet nuget push ./release/*.nupkg --api-key ${{secrets.PUBLISHKEY}} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
 

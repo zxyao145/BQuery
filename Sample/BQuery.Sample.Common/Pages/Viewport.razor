@@ -1,0 +1,25 @@
+@page "/viewport"
+@inherits LabComponent
+<PageHeading Title="Viewport & Scroll" />
+<section class="panel"><fieldset disabled="@(!Ready)"><div class="controls"><label>API <select @bind="method">@foreach(var item in methods){<option>@item</option>}</select></label><button class="primary" @onclick="Measure">Measure</button><button @onclick="Reset">Reset</button></div></fieldset><code class="call">@Call</code><pre class="result" data-testid="measurement">@result</pre><p class="error" role="alert">@Error</p></section><div class="scroll-spacer">SCROLL THE DOCUMENT ↓</div><section class="panel"><h2>Measure from here</h2><button disabled="@(!Ready)" @onclick="Measure">Measure</button><pre class="result">@result</pre><p>Viewport coordinates are relative to the visible window. Document coordinates include scrolling.</p></section><SourcePanel File="Pages/Viewport.razor" />
+@code {
+    private string method = "GetWidthAndHeightAsync", result = "";
+    private static readonly string[] methods = ["GetWidthAsync", "GetHeightAsync", "GetWidthAndHeightAsync", "GetScrollWidthAsync", "GetScrollHeightAsync", "GetScrollWidthAndHeightAsync", "GetScrollLeftAsync", "GetScrollTopAsync", "GetScrollLeftAndTopAsync", "getScrollDistToTop (JS)", "getScrollDistToBottom (JS)"];
+    private string Call => method.Contains("(JS)") ? "bQuery.viewport." + method.Replace(" (JS)", "") + "(...)" : "await Bq.Viewport." + method + "();";
+    protected override Task Initialize() => Measure();
+    private Task Measure() => Run(async () => { object value = method switch {
+        "GetWidthAsync" => await Bq.Viewport.GetWidthAsync(),
+        "GetHeightAsync" => await Bq.Viewport.GetHeightAsync(),
+        "GetWidthAndHeightAsync" => await Bq.Viewport.GetWidthAndHeightAsync(),
+        "GetScrollWidthAsync" => await Bq.Viewport.GetScrollWidthAsync(),
+        "GetScrollHeightAsync" => await Bq.Viewport.GetScrollHeightAsync(),
+        "GetScrollWidthAndHeightAsync" => await Bq.Viewport.GetScrollWidthAndHeightAsync(),
+        "GetScrollLeftAsync" => await Bq.Viewport.GetScrollLeftAsync(),
+        "GetScrollTopAsync" => await Bq.Viewport.GetScrollTopAsync(),
+        "GetScrollLeftAndTopAsync" => await Bq.Viewport.GetScrollLeftAndTopAsync(),
+        "getScrollDistToTop (JS)" => await JS.InvokeAsync<double>("bQuery.viewport.getScrollDistToTop"),
+        "getScrollDistToBottom (JS)" => await JS.InvokeAsync<double>("bQuery.viewport.getScrollDistToBottom"),
+        _ => throw new InvalidOperationException("Unknown measurement")
+    }; result = JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }); });
+    private Task Reset() => Run(async () => { await Module!.InvokeVoidAsync("scrollWindowTop"); method="GetWidthAndHeightAsync"; result="Reset. Measure the current layout."; });
+}

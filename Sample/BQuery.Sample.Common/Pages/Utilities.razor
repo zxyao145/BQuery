@@ -1,0 +1,44 @@
+@page "/utilities"
+@inherits LabComponent
+<PageHeading Title="Throttle & Debounce" />
+<section class="panel"><fieldset disabled="@(!Ready)"><div class="controls"><label>Interval <input type="range" min="100" max="1000" step="50" @bind="interval" @bind:after="Reset" /> @interval ms</label><button class="primary" @onclick="Burst">Run burst</button><button @onclick="Cancel">Cancel throttle</button><button @onclick="Reset">Reset</button></div></fieldset>
+<div class="specimen event-pad" @ref="pad"><span>Move the pointer here or click Run burst.</span></div>
+<div class="metrics">@foreach(var name in names){<div class="metric"><strong data-testid="timing-@name">@counts[name]</strong><span>@name.ToUpperInvariant()</span></div>}</div>
+<div class="timeline" data-testid="timeline">@foreach(var item in timeline){<span class="tick">@item</span>}</div><p role="status">@status</p><code class="call">const throttled = bQuery.throttle(callback, interval);<br />const debounced = bQuery.debounce(callback, interval);<br />throttled.cancel();</code><p class="error" role="alert">@Error</p><p class="muted">Throttle limits the callback rate; debounce waits for a pause. Cancel throttle stops its pending callback.</p></section>
+<SourcePanel File="Pages/Utilities.razor" /><SourcePanel File="wwwroot/lab.js" />
+@code {
+    private ElementReference pad;
+    private int interval=300, generation;
+    private IJSObjectReference? session;
+    private DotNetObjectReference<Utilities>? reference;
+    private string status="Ready to experiment.";
+    private static readonly string[] names=["raw","throttle","debounce"];
+    private readonly Dictionary<string,int> counts=new() { ["raw"]=0,["throttle"]=0,["debounce"]=0 };
+    private readonly List<string> timeline=[];
+    protected override Task Initialize() => Reset();
+    private readonly SemaphoreSlim resetLock = new(1, 1);
+    private Task Reset() => Run(async () => {
+        await resetLock.WaitAsync();
+        try {
+        generation++;
+        if(session is not null) { await session.InvokeVoidAsync("dispose"); await session.DisposeAsync(); }
+        if(Disposed) return;
+        reference ??= DotNetObjectReference.Create(this);
+        foreach(var name in names) counts[name]=0;
+        timeline.Clear(); status="New session · move or run a burst.";
+        session=await Module!.InvokeAsync<IJSObjectReference>("timing",pad,reference,interval,generation);
+        } finally { resetLock.Release(); }
+    });
+    private Task Burst() => Run(async () => { if(session is not null) await session.InvokeVoidAsync("burst"); status="Burst: 12 inputs, 30 ms apart."; });
+    private Task Cancel() => Run(async () => { if(session is not null) await session.InvokeVoidAsync("cancel"); status="Pending throttle callback cancelled."; });
+    [JSInvokable] public Task Tick(int token,string name,int elapsed) => InvokeAsync(() => {
+        if(Disposed || token!=generation) return;
+        counts[name]++; timeline.Add($"{elapsed}ms {name}"); if(timeline.Count>100) timeline.RemoveAt(0); StateHasChanged();
+    });
+    protected override async ValueTask Cleanup() {
+        await resetLock.WaitAsync();
+        generation++;
+        try { if(session is not null) { await session.InvokeVoidAsync("dispose"); await session.DisposeAsync(); } }
+        finally { reference?.Dispose(); resetLock.Release(); }
+    }
+}

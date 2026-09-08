@@ -10,6 +10,8 @@
     "build": "vite build --config vite.config.js --mode production && node -e \"require('fs').copyFileSync('dist/bQuery.min.js','bQuery.min.js')\"",
     "fmt": "biome format --write",
     "lint": "biome lint",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
     "lint:fix": "biome lint --write",
     "check": "biome check --write"
   },
@@ -22,6 +24,7 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
+    "@playwright/test": "1.63.0",
     "@types/node": "^26.5.0",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
