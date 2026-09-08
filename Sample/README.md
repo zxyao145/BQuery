@@ -1,6 +1,6 @@
 # BQuery Samples
 
-Eight shared demo pages with a plain white UI and three independently runnable .NET 10 Blazor Web App hosts.
+Eight shared demo pages with a plain white UI, three independently runnable .NET 10 Blazor Web App hosts, and a standalone WebAssembly build for static hosting.
 
 ## Start
 
@@ -14,18 +14,20 @@ dotnet run --project Sample/BQuery.Sample.Auto   # http://localhost:5303
 
 Choose one host or use separate terminals. Debug builds do not regenerate BQuery JavaScript; run the JS build after library changes. Release builds generate it automatically.
 
-## Five projects
+## Six projects
 
 ```text
 Server ──────────────────> Common ──> BQuery
 Wasm ──┐                     ↑
        ├──> Client ───────────┘
 Auto ──┘
+StandaloneWasm ───────────> Common ──> BQuery
 ```
 
 - **Common** owns all routes, layout, experiment components, CSS, helper JS, fonts and embedded source.
 - **Client** only bootstraps browser services. It has no fixed render mode or standalone `#app` registration.
 - **Server** selects InteractiveServer, **Wasm** selects InteractiveWebAssembly, **Auto** selects InteractiveAuto. Each registers Common routes and keeps prerendering enabled.
+- **StandaloneWasm** is a static Blazor WebAssembly app. It mounts `#app` from `wwwroot/index.html`, has no ASP.NET Core host or prerendering, and uses `/BQuery/` as its GitHub Pages base path.
 - All hosts and Client register `AddBQuery()`. Both Wasm and Auto reference Client. Wasm is a Blazor Web App, not a standalone WebAssembly application.
 
 The runtime badge uses `RendererInfo`, independently of the host's configured mode. Auto initially uses Server when browser resources are unavailable. After resources download, a subsequent visit may use WebAssembly; the mounted page never migrates runtimes.

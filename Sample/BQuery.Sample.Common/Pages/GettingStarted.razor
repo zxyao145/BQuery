@@ -6,14 +6,16 @@
 pnpm --dir src/BQuery/wwwroot run build
 dotnet run --project Sample/BQuery.Sample.Server # localhost:5301
 dotnet run --project Sample/BQuery.Sample.Wasm   # localhost:5302
-dotnet run --project Sample/BQuery.Sample.Auto   # localhost:5303</code></pre>
-    <p>Wasm and Auto share Client. All hosts use Common components.</p>
+dotnet run --project Sample/BQuery.Sample.Auto   # localhost:5303
+dotnet publish Sample/BQuery.Sample.StandaloneWasm -c Release</code></pre>
+    <p>Wasm and Auto share Client. StandaloneWasm publishes static files for GitHub Pages at the <code>/BQuery/</code> base path. All samples use Common components.</p>
 </section>
 <section class="panel">
     <h2>Registration</h2>
     <pre><code>builder.Services.AddBQuery();
 &lt;script src="_content/BQuery/dist/bQuery.min.js"&gt;&lt;/script&gt;
-&lt;script src="_framework/blazor.web.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="_framework/blazor.web.js"&gt;&lt;/script&gt;
+&lt;!-- StandaloneWasm uses _framework/blazor.webassembly.js instead. --&gt;</code></pre>
     <p>Register services in each host and Client. Run DOM interop after interactive rendering. Unsubscribe delegates and remove drag bindings on disposal.</p>
 </section>
 <details class="panel">
@@ -33,18 +35,18 @@ dotnet run --project Sample/BQuery.Sample.Auto   # localhost:5303</code></pre>
 @code {
     private readonly string constantExample = JsModuleConstants.GetMethod(JsModuleConstants.ModuleName, JsModuleConstants.Viewport.ModuleName, JsModuleConstants.Viewport.GetWidth);
     private static readonly (string Api,string Route,string Label)[] coverage = [
-        ("AddBQuery; JsModuleConstants.GetMethod and module groups; generator attributes; WindowEvent value semantics", "/getting-started", "Setup and constants"),
-        ("Bq.GetUserAgentAsync; IJSRuntime.GetUserAgentAsync; bQuery.navigator.getUserAgent; version", "/", "Browser identity"),
-        ("SetAttr / GetAttr / RemoveAttr; AddCls / RemoveCls (string and List<string>); AddCss / RemoveCss / Css; obsolete Attr", "/dom", "DOM Playground"),
-        ("domHelper selector and Element targets; CSS object and declaration string; ElementReference.FocusAsync; legacy elementExtensions.focus", "/dom", "DOM Playground"),
-        ("GetWidthAsync / GetHeightAsync / GetWidthAndHeightAsync (outer true and false); GetScrollWidthAsync / GetScrollHeightAsync / GetScrollWidthAndHeightAsync", "/elements", "Element Geometry"),
-        ("GetScrollLeftAsync / GetScrollTopAsync / GetScrollLeftAndTopAsync; GetPositionInViewportAsync / GetPositionInDocAsync; ElePosition; JS getElementLeftInDoc / getElementTopInDoc", "/elements", "Element Geometry"),
-        ("BqViewport: all nine individual and combined dimension, document size and scroll APIs; JS getScrollDistToTop / getScrollDistToBottom", "/viewport", "Viewport & Scroll"),
-        ("Bq and BqEvents: AddWindowEventListener<T> / RemoveWindowEventListener<T>; AddWindowEventListeners / RemoveWindowEventListeners; BqEvents.DisposeAsync; JS wildcard add/remove/dispose", "/events", "Window Events"),
-        ("OnMouseDown / OnMouseUp / OnClick / OnDblClick / OnMouseOver / OnMouseOut / OnMouseMove / OnContextMenu (+ Async)", "/events", "Mouse events"),
-        ("OnResize / OnScroll / OnFocus / OnBlur (+ Async); ResizeEventArgs", "/events", "Window events"),
-        ("OnTouchStart / OnTouchMove / OnTouchEnd / OnTouchCancel / OnKeyDown / OnKeyPress / OnKeyUp (+ Async)", "/events", "Touch and keyboard"),
-        ("BqDrag.BindDragAsync / RemoveDragAsync / ResetDragPositionAsync; default and custom DragOptions; JS bindDrag / addDraggable / removeDraggable / resetDraggableElePosition", "/drag", "Drag Lab"),
-        ("bQuery.throttle (including cancel); bQuery.debounce", "/utilities", "Timing Utilities")
+        ("AddBQuery; JsModuleConstants.GetMethod and module groups; generator attributes; WindowEvent value semantics", "getting-started", "Setup and constants"),
+        ("Bq.GetUserAgentAsync; IJSRuntime.GetUserAgentAsync; bQuery.navigator.getUserAgent; version", "", "Browser identity"),
+        ("SetAttr / GetAttr / RemoveAttr; AddCls / RemoveCls (string and List<string>); AddCss / RemoveCss / Css; obsolete Attr", "dom", "DOM Playground"),
+        ("domHelper selector and Element targets; CSS object and declaration string; ElementReference.FocusAsync; legacy elementExtensions.focus", "dom", "DOM Playground"),
+        ("GetWidthAsync / GetHeightAsync / GetWidthAndHeightAsync (outer true and false); GetScrollWidthAsync / GetScrollHeightAsync / GetScrollWidthAndHeightAsync", "elements", "Element Geometry"),
+        ("GetScrollLeftAsync / GetScrollTopAsync / GetScrollLeftAndTopAsync; GetPositionInViewportAsync / GetPositionInDocAsync; ElePosition; JS getElementLeftInDoc / getElementTopInDoc", "elements", "Element Geometry"),
+        ("BqViewport: all nine individual and combined dimension, document size and scroll APIs; JS getScrollDistToTop / getScrollDistToBottom", "viewport", "Viewport & Scroll"),
+        ("Bq and BqEvents: AddWindowEventListener<T> / RemoveWindowEventListener<T>; AddWindowEventListeners / RemoveWindowEventListeners; BqEvents.DisposeAsync; JS wildcard add/remove/dispose", "events", "Window Events"),
+        ("OnMouseDown / OnMouseUp / OnClick / OnDblClick / OnMouseOver / OnMouseOut / OnMouseMove / OnContextMenu (+ Async)", "events", "Mouse events"),
+        ("OnResize / OnScroll / OnFocus / OnBlur (+ Async); ResizeEventArgs", "events", "Window events"),
+        ("OnTouchStart / OnTouchMove / OnTouchEnd / OnTouchCancel / OnKeyDown / OnKeyPress / OnKeyUp (+ Async)", "events", "Touch and keyboard"),
+        ("BqDrag.BindDragAsync / RemoveDragAsync / ResetDragPositionAsync; default and custom DragOptions; JS bindDrag / addDraggable / removeDraggable / resetDraggableElePosition", "drag", "Drag Lab"),
+        ("bQuery.throttle (including cancel); bQuery.debounce", "utilities", "Timing Utilities")
     ];
 }

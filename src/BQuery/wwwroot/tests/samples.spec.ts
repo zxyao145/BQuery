@@ -161,7 +161,10 @@ for (const [name, port, renderer] of [
 		await page.getByRole("button", { name: "Reset", exact: true }).click();
 		await expect(page.getByTestId("timing-raw")).toHaveText("0");
 		await page.getByRole("button", { name: "Run burst" }).click();
-		await page.locator('nav a[href="/"]').click();
+		await page
+			.getByRole("navigation")
+			.getByRole("link", { name: "Browser Info", exact: true })
+			.click();
 		await expect(page.getByTestId("user-agent")).toContainText("Mozilla");
 		await page.goto(base + "/focus");
 		await expect(page).toHaveURL(base + "/drag");
@@ -178,7 +181,10 @@ for (const [name, port, renderer] of [
 		}
 		await page.getByRole("button", { name: "Toggle navigation" }).click();
 		await expect(page.getByRole("navigation")).toBeVisible();
-		await page.locator('nav a[href="/dom"]').click();
+		await page
+			.getByRole("navigation")
+			.getByRole("link", { name: "DOM", exact: true })
+			.click();
 		await expect(page.locator("h1")).toHaveText("DOM");
 		await page.setViewportSize({ width: 1280, height: 900 });
 		await page.goto(base + "/dom");
@@ -308,7 +314,10 @@ for (const [name, port, renderer] of [
 		}
 		await page.getByRole("button", { name: "Dispose scope" }).click();
 		for (let i = 0; i < 3; i++) {
-			await page.locator('nav a[href="/drag"]').click();
+			await page
+				.getByRole("navigation")
+				.getByRole("link", { name: "Drag", exact: true })
+				.click();
 			await expect(page.getByTestId("drag-state")).toContainText("Bound");
 			expect((await listeners()).pointermove).toBe(1);
 			for (const api of ["C# BqDrag", "JS bindDrag", "JS addDraggable"]) {
@@ -331,7 +340,10 @@ for (const [name, port, renderer] of [
 					.poll(async () => Math.abs((await card.boundingBox())!.x - before.x))
 					.toBeLessThan(2);
 			}
-			await page.locator('nav a[href="/"]').click();
+			await page
+				.getByRole("navigation")
+				.getByRole("link", { name: "Browser Info", exact: true })
+				.click();
 			await expect(page.getByTestId("user-agent")).toContainText("Mozilla");
 			await expect.poll(async () => (await listeners()).pointermove).toBe(0);
 			await expect.poll(listeners).toEqual(baseline);
@@ -501,7 +513,10 @@ for (const [name, port] of [
 		await expect(page.locator("#drag-instructions")).toContainText(
 			"clips overflowing content",
 		);
-		await page.locator('nav a[href="/"]').click();
+		await page
+			.getByRole("navigation")
+			.getByRole("link", { name: "Browser Info", exact: true })
+			.click();
 		await expect(page.locator(".viewport-guide")).toHaveCount(0);
 	});
 }

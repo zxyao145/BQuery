@@ -1,20 +1,28 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
-<a class="skip-link" href="@(Navigation.Uri.Split('#')[0] + "#main")" @onclick="FocusMain" @onclick:preventDefault>Skip to content</a>
-<header class="mobile-header"><a href="/" class="brand">BQuery</a><button aria-label="Toggle navigation" aria-expanded="@menuOpen" @onclick="() => menuOpen = !menuOpen">Menu</button></header>
+<a class="skip-link" href="@(Navigation.Uri.Split('#')[0] + "#main")" @onclick="FocusMain" @onclick:preventDefault>Skip
+    to content
+</a>
+<header class="mobile-header"><a href="" class="brand">BQuery</a>
+    <button aria-label="Toggle navigation" aria-expanded="@menuOpen" @onclick="() => menuOpen = !menuOpen">Menu</button>
+</header>
 <aside class="sidebar @(menuOpen ? "open" : "")">
-    <a href="/" class="brand">BQuery</a>
+    <a href="" class="brand">BQuery</a>
     <nav aria-label="Demos">
         @foreach (var entry in Catalog.Pages)
         {
-            <NavLink href="@entry.Path" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">@entry.Title</NavLink>
+            <NavLink href="@entry.Path" Match="NavLinkMatch.All"
+                     @onclick="() => menuOpen = false">@entry.Title</NavLink>
         }
     </nav>
 </aside>
 <div class="workspace">
-    <header class="topbar"><RuntimeBadge /></header>
+    <header class="topbar">
+        <RuntimeBadge/>
+    </header>
     <main @ref="main" id="main" tabindex="-1">@Body</main>
 </div>
+
 @code {
     private bool menuOpen;
     private ElementReference main;
