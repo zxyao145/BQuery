@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Setup pnpm and Node.js
+      uses: pnpm/setup@v1
+      with:
+        package-json-file: src/BQuery/wwwroot/package.json
+        runtime: node@26
+        install: false
+
+    - name: Pnpm install
+      working-directory: src/BQuery/wwwroot
+      run: pnpm install --frozen-lockfile
+
+    - name: Publish
+      run: dotnet publish Sample/BQuery.Sample.StandaloneWasm/BQuery.Sample.StandaloneWasm.csproj --configuration Release --output publish
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v6
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v5
